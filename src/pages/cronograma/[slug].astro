@@ -295,6 +295,8 @@ const maxActividades = Math.max(
       line-height: 1.05;
       letter-spacing: -0.03em;
       margin-bottom: 1.5rem;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     /* Highlighted last word of title */
     .hero-title-accent {
@@ -420,12 +422,13 @@ const maxActividades = Math.max(
       .hero-days {
         display: flex;
         flex-direction: row;
+        flex-wrap: wrap;
         max-width: none;
         gap: 0.5rem;
         width: 100%;
       }
       .day-card {
-        flex: 1 1 0;
+        flex: 1 1 100px;
         min-width: 0;
         width: 100%;
         padding: 0.75rem 0.55rem;
@@ -433,6 +436,8 @@ const maxActividades = Math.max(
       .day-card-label {
         font-size: 3vw;
         font-size: clamp(0.75rem, 2.8vw, 0.88rem);
+        white-space: normal;
+        line-height: 1.1;
       }
       .day-card-times {
         font-size: 2.2vw;
@@ -913,7 +918,7 @@ const maxActividades = Math.max(
       margin-bottom: 1.25rem;
     }
     .footer-logo-img {
-      width: 35vw;
+      width: 140px;
       width: clamp(140px, 35vw, 200px);
       height: auto;
       display: block;
@@ -1516,93 +1521,90 @@ const maxActividades = Math.max(
         if (backdrop.className.indexOf('open') === -1) {
           backdrop.className += ' open';
         }
+
+        var closeBtns = panel.querySelectorAll('.js-close');
+        for (var i = 0; i < closeBtns.length; i++) {
+          closeBtns[i].onclick = closeModal;
+          closeBtns[i].ontouchstart = closeModal;
+        }
       }
 
-      function closeModal() {
+      function closeModal(e) {
+        if (e && e.preventDefault) e.preventDefault();
         var backdrop = document.getElementById('ponente-modal');
         if (backdrop) {
           backdrop.className = backdrop.className.replace(' open', '');
         }
       }
 
-      function handleGlobalClick(e) {
-        var target = e.target;
-        
-        // Handle backdrop click
-        var backdrop = document.getElementById('ponente-modal');
-        if (target === backdrop) {
-          closeModal();
-          return;
-        }
+      // ── Attach Events Directly and IMMEDIATELY ──
 
-        while (target && target !== document.body && target !== document) {
-          var cls = target.className;
-          if (typeof cls === 'string') {
-            
-            // 1. Close buttons
-            if (cls.indexOf('js-close') > -1) {
-              closeModal();
-              return;
-            }
-
-            // 2. Tabs
-            if (cls.indexOf('fecha-tab') > -1) {
-              var idx = target.getAttribute('data-index');
-              var tabs = document.querySelectorAll('.fecha-tab');
-              var panels = document.querySelectorAll('.fecha-panel');
-              for (var j = 0; j < tabs.length; j++) { tabs[j].className = tabs[j].className.replace(' active', ''); }
-              for (var j = 0; j < panels.length; j++) { panels[j].className = panels[j].className.replace(' active', ''); }
-              target.className += ' active';
-              var panelActivo = document.querySelector('.fecha-panel[data-index="' + idx + '"]');
-              if (panelActivo) {
-                panelActivo.className += ' active';
-              }
-              return;
-            }
-
-            // 3. Actividad Card
-            if (cls.indexOf('actividad-card') > -1) {
-              var hasP = target.getAttribute('data-has-ponentes');
-              if (hasP === 'true') {
-                var titulo = target.getAttribute('data-titulo') || '';
-                var ponentesRaw = target.getAttribute('data-ponentes') || '[]';
-                var ponentes = [];
-                try { ponentes = JSON.parse(ponentesRaw); } catch(err) {}
-                openModal(titulo, ponentes);
-              }
-              return;
-            }
-
-            // 4. Ponente Marquee Card
-            if (cls.indexOf('ponente-marquee-card') > -1) {
-              var pRaw = target.getAttribute('data-ponente') || '{}';
-              var p = {};
-              try { p = JSON.parse(pRaw); } catch(err) {}
-              openModal(p.cargo || '', [p]);
-              return;
-            }
+      // 1. Tabs
+      var tabs = document.querySelectorAll('.fecha-tab');
+      var panels = document.querySelectorAll('.fecha-panel');
+      for (var i = 0; i < tabs.length; i++) {
+        var tabHandler = function(e) {
+          if (e && e.preventDefault) e.preventDefault();
+          var tab = e.currentTarget || this;
+          var idx = tab.getAttribute('data-index');
+          for (var j = 0; j < tabs.length; j++) { tabs[j].className = tabs[j].className.replace(' active', ''); }
+          for (var j = 0; j < panels.length; j++) { panels[j].className = panels[j].className.replace(' active', ''); }
+          tab.className += ' active';
+          var panelActivo = document.querySelector('.fecha-panel[data-index="' + idx + '"]');
+          if (panelActivo) {
+            panelActivo.className += ' active';
           }
-          target = target.parentNode;
-        }
+        };
+        tabs[i].onclick = tabHandler;
+        tabs[i].ontouchstart = tabHandler;
       }
 
-      // Attach global listeners safely
-      var oldOnload = window.onload;
-      window.onload = function() {
-        if (oldOnload) oldOnload();
-        document.body.onclick = handleGlobalClick;
-        // Fallback for touch devices
-        document.body.addEventListener('touchstart', function(e) {
-            // we don't preventDefault here, just let it trigger click
-        }, {passive: true});
-      };
-      
-      // Also attach immediately if already loaded
-      if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        setTimeout(function() { document.body.onclick = handleGlobalClick; }, 1);
+      // 2. Actividad Cards
+      var cards = document.querySelectorAll('.actividad-card[data-has-ponentes="true"]');
+      for (var i = 0; i < cards.length; i++) {
+        var cardHandler = function(e) {
+          if (e && e.preventDefault) e.preventDefault();
+          var card = e.currentTarget || this;
+          var titulo = card.getAttribute('data-titulo') || '';
+          var ponentesRaw = card.getAttribute('data-ponentes') || '[]';
+          var ponentes = [];
+          try { ponentes = JSON.parse(ponentesRaw); } catch(err) {}
+          openModal(titulo, ponentes);
+        };
+        cards[i].onclick = cardHandler;
+        cards[i].ontouchstart = cardHandler;
+      }
+
+      // 3. Ponente Marquee Cards
+      var pCards = document.querySelectorAll('.ponente-marquee-card[data-ponente]');
+      for (var i = 0; i < pCards.length; i++) {
+        var pCardHandler = function(e) {
+          if (e && e.preventDefault) e.preventDefault();
+          var card = e.currentTarget || this;
+          var pRaw = card.getAttribute('data-ponente') || '{}';
+          var p = {};
+          try { p = JSON.parse(pRaw); } catch(err) {}
+          openModal(p.cargo || '', [p]);
+        };
+        pCards[i].onclick = pCardHandler;
+        pCards[i].ontouchstart = pCardHandler;
+      }
+
+      // 4. Modal Backdrop
+      var backdrop = document.getElementById('ponente-modal');
+      if (backdrop) {
+        var backdropHandler = function(e) {
+          if (e.target === backdrop) {
+            if (e && e.preventDefault) e.preventDefault();
+            closeModal();
+          }
+        };
+        backdrop.onclick = backdropHandler;
+        backdrop.ontouchstart = backdropHandler;
       }
 
       document.onkeydown = function(e) { if (e.key === 'Escape' || e.keyCode === 27) closeModal(); };
+
     })();
   </script>
 </CronogramaLayout>
