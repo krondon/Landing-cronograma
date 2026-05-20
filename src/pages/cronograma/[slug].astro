@@ -153,14 +153,15 @@ const maxActividades = Math.max(
     /* ── HERO ── */
     .hero {
       position: relative;
-      min-height: 40vh;
+      min-height: 480px;
+      padding: 4rem 2rem;
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-between;
       align-items: center;
-      padding: 7rem 4rem 5rem;
-      gap: 4rem;
-      overflow: hidden;
+      justify-content: space-between;
+      gap: 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
     }
     .hero-bg {
       position: absolute;
@@ -352,6 +353,7 @@ const maxActividades = Math.max(
       animation: heroEnter 0.6s cubic-bezier(0.2,0,0,1) 0.12s both;
     }
     .day-card {
+      display: block;
       background: var(--dayCardBg);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
@@ -1231,14 +1233,14 @@ const maxActividades = Math.max(
 
     <!-- Right: Day cards -->
     <div class="hero-days">
-      {cronograma_fechas.map((f: Fecha) => {
+      {cronograma_fechas.map((f: Fecha, i: number) => {
         const count    = f.cronograma_actividades.length;
         const pct      = Math.round((count / maxActividades) * 100);
         const primera  = f.cronograma_actividades[0]?.hora_inicio;
         const ultima   = f.cronograma_actividades[f.cronograma_actividades.length - 1]?.hora_fin
                       ?? f.cronograma_actividades[f.cronograma_actividades.length - 1]?.hora_inicio;
         return (
-          <div class="day-card">
+          <a href="#cronograma" class="day-card" onclick={`var t = document.querySelectorAll('.fecha-tab'); if(t[${i}]) { t[${i}].click(); }`}>
             <div class="day-card-top">
               <span class="day-card-label">{f.etiqueta ?? f.fecha}</span>
               <span class="day-card-count">{count}</span>
@@ -1249,7 +1251,7 @@ const maxActividades = Math.max(
             <div class="day-card-bar">
               <div class="day-card-bar-fill" style={`width:${pct}%`}></div>
             </div>
-          </div>
+          </a>
         );
       })}
     </div>
