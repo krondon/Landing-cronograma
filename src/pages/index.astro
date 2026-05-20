@@ -1,17 +1,627 @@
 ---
+import CronogramaLayout from '../layouts/CronogramaLayout.astro';
+import { getAllCronogramas } from '../lib/cronogramas';
 
+const cronogramas = await getAllCronogramas();
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<CronogramaLayout
+  title="Eventos y Cronogramas"
+  description="Explora los cronogramas de los eventos más importantes en un solo lugar."
+  colorFondo="#0B192C"
+  colorTexto="#E2E8F0"
+  colorPrimario="#008DDA"
+>
+  <style>
+
+    /* ── TOP BAR ── */
+    .top-bar {
+      height: 3px;
+      background: linear-gradient(90deg, #F86F03 0%, #008DDA 50%, #00FFAB 100%);
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ── HERO WRAPPER ── */
+    .hero-wrap {
+      position: relative;
+      overflow: hidden;
+      padding: 12rem 2rem 10rem;
+      min-height: 60vh;
+      display: flex;
+      align-items: center;
+    }
+
+    /* ── SVG WAVE CANVAS ── */
+    .wave-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .wave-svg {
+      position: absolute;
+      width: 130%;
+      left: -15%;
+      bottom: -10%;
+      opacity: 1;
+    }
+    .wave-svg.w1 { animation: waveShift1 10s ease-in-out infinite; }
+    .wave-svg.w2 { animation: waveShift2 13s ease-in-out infinite; bottom: -5%; }
+    .wave-svg.w3 { animation: waveShift3  8s ease-in-out infinite; bottom: -15%; }
+
+    @keyframes waveShift1 {
+      0%, 100% { transform: translateX(0)   translateY(0); }
+      50%       { transform: translateX(3%)  translateY(-18px); }
+    }
+    @keyframes waveShift2 {
+      0%, 100% { transform: translateX(0)   translateY(0); }
+      50%       { transform: translateX(-3%) translateY(12px); }
+    }
+    @keyframes waveShift3 {
+      0%, 100% { transform: translateX(0)   translateY(0); }
+      33%       { transform: translateX(2%)  translateY(-8px); }
+      66%       { transform: translateX(-2%) translateY(8px); }
+    }
+
+    /* ── FLOATING SPHERES ── */
+    .sphere {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%,
+        rgba(255,255,255,0.18) 0%,
+        rgba(255,255,255,0.04) 60%,
+        transparent 100%
+      );
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(2px);
+      pointer-events: none;
+      animation: sphereFloat var(--dur, 6s) ease-in-out infinite;
+      animation-delay: var(--del, 0s);
+    }
+    .sphere.s1 { width: 120px;  height: 120px;  top: 12%;  right: 18%; --dur:7s;  --del:0s; }
+    .sphere.s2 { width: 64px;  height: 64px;  top: 55%;  right: 8%;  --dur:5s;  --del:-2s; }
+    .sphere.s3 { width: 48px;  height: 48px;  top: 30%;  left: 8%;   --dur:9s;  --del:-1s; }
+    .sphere.s4 { width: 86px;  height: 86px;  bottom: 20%; left: 22%; --dur:6s; --del:-3s; }
+    .sphere.s5 { width: 28px;  height: 28px;  top: 70%;  left: 45%;  --dur:4s;  --del:-0.5s; }
+    .sphere.s6 { width: 56px;  height: 56px;  top: 8%;   left: 38%;  --dur:8s;  --del:-4s; }
+
+    @keyframes sphereFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50%       { transform: translateY(-22px) scale(1.04); }
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    .noise-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      opacity: 0.35;
+    }
+
+    /* ── HERO CONTENT ── */
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Eyebrow label */
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: #00FFAB;
+      margin-bottom: 1.75rem;
+    }
+    .hero-eyebrow-line {
+      width: 40px;
+      height: 2px;
+      background: linear-gradient(90deg, #00FFAB, transparent);
+      flex-shrink: 0;
+    }
+    .hero-eyebrow-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00FFAB;
+      box-shadow: 0 0 10px #00FFAB, 0 0 20px rgba(0,255,171,0.4);
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* Main title — Syne ultra-bold */
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(4rem, 8vw, 7.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      margin-bottom: 2rem;
+      max-width: 800px;
+    }
+    .title-line {
+      display: block;
+    }
+    .title-plain {
+      color: #F1F5F9;
+    }
+    .title-gradient {
+      background: linear-gradient(95deg, #F86F03 0%, #008DDA 55%, #00FFAB 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+    }
+    /* Subtle underline accent on gradient word */
+    .title-gradient::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #F86F03, #008DDA, #00FFAB);
+      border-radius: 2px;
+      opacity: 0.5;
+    }
+    .title-thin {
+      color: rgba(241,245,249,0.35);
+      font-weight: 400;
+      font-size: 0.65em;
+      letter-spacing: -0.01em;
+      display: block;
+      margin-bottom: 0.15em;
+    }
+
+    /* Subtitle */
+    .hero-sub {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: rgba(226,232,240,0.55);
+      max-width: 600px;
+      line-height: 1.75;
+      margin-bottom: 3rem;
+    }
+
+    /* CTA pill */
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 1rem 2.5rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(12px);
+      border-radius: 50px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #E2E8F0;
+      letter-spacing: 0.03em;
+      transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+      text-decoration: none;
+    }
+    .hero-cta:hover {
+      background: rgba(0,141,218,0.15);
+      border-color: rgba(0,141,218,0.4);
+      box-shadow: 0 0 24px rgba(0,141,218,0.25);
+    }
+    .hero-cta-arrow {
+      font-size: 1.3rem;
+      transition: transform 0.2s;
+    }
+    .hero-cta:hover .hero-cta-arrow { transform: translateX(6px); }
+
+    /* Count chip */
+    .hero-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: 1rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      color: rgba(148,163,184,0.7);
+      font-weight: 500;
+    }
+    .hero-count strong {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #E2E8F0;
+    }
+
+    /* ── SECTION DIVIDER ── */
+    .section-head {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 2rem 0;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: rgba(148,163,184,0.6);
+      white-space: nowrap;
+    }
+    .section-rule {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent);
+    }
+
+    /* ── GRID ── */
+    .grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 2rem;
+    }
+
+    /* ── EVENT CARD (Glassmorphism) ── */
+    .event-card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.38s cubic-bezier(0.2,0,0,1),
+                  box-shadow 0.38s,
+                  border-color 0.3s;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      position: relative;
+    }
+    /* Gradient border glow on hover */
+    .event-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 25px;
+      background: linear-gradient(135deg, #F86F03, #008DDA, #00FFAB);
+      opacity: 0;
+      z-index: -1;
+      transition: opacity 0.35s;
+    }
+    .event-card:hover::before { opacity: 0.6; }
+    .event-card:hover {
+      transform: translateY(-12px) scale(1.01);
+      box-shadow: 0 32px 72px rgba(0,0,0,0.55);
+    }
+
+    /* Card visual */
+    .card-visual {
+      width: 100%;
+      height: 190px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .card-visual-inner {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.55s cubic-bezier(0.2,0,0,1);
+    }
+    .event-card:hover .card-visual-inner { transform: scale(1.08); }
+    .card-visual-scrim {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(6,14,28,0.88) 0%, transparent 55%);
+    }
+
+    /* Card body */
+    .card-body {
+      padding: 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.63rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.22rem 0.7rem;
+      border-radius: 50px;
+      margin-bottom: 0.9rem;
+      width: fit-content;
+    }
+    .card-tag-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .card-body h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #F1F5F9;
+      margin-bottom: 0.55rem;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+    }
+    .card-body p {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.875rem;
+      color: rgba(148,163,184,0.75);
+      line-height: 1.65;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Card footer */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      gap: 1rem;
+    }
+    .card-footer-label {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: rgba(148,163,184,0.5);
+    }
+    .btn-agenda {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1.1rem;
+      border-radius: 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: box-shadow 0.25s, transform 0.2s;
+      letter-spacing: 0.02em;
+    }
+    .event-card:hover .btn-agenda {
+      box-shadow: 0 0 20px rgba(0,141,218,0.5);
+      transform: scale(1.04);
+    }
+
+    /* Empty state */
+    .empty {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      text-align: center;
+    }
+    .empty-inner {
+      padding: 5rem 2rem;
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(12px);
+      border: 1.5px dashed rgba(255,255,255,0.08);
+      border-radius: 24px;
+    }
+    .empty h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      color: rgba(226,232,240,0.55);
+    }
+    .empty p { color: rgba(148,163,184,0.4); font-family: 'Outfit', sans-serif; }
+
+    /* ── FOOTER ── */
+    .site-footer {
+      margin-top: 5rem;
+      position: relative;
+      padding: 3rem 2rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(6,14,28,0.65);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .site-footer::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #F86F03 0%, #008DDA 50%, #00FFAB 100%);
+    }
+    .footer-label {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(148,163,184,0.4);
+      margin-bottom: 1.25rem;
+    }
+    .footer-logo-img {
+      width: clamp(130px, 32vw, 190px);
+      height: auto;
+      display: block;
+      margin-bottom: 1.5rem;
+      filter: brightness(0) invert(1);
+      opacity: 0.6;
+    }
+    .footer-copy {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.62rem;
+      color: rgba(148,163,184,0.3);
+      letter-spacing: 0.07em;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .hero-wrap { padding: 5rem 1.25rem 6rem; }
+      .hero-title { font-size: clamp(2.4rem, 10vw, 3.5rem); }
+      .section-head { padding: 2.5rem 1.25rem 0; }
+      .grid { padding: 0 1.25rem; grid-template-columns: 1fr; gap: 1.25rem; }
+      .sphere.s1 { right: 5%; top: 8%; width: 60px; height: 60px; }
+      .sphere.s4 { display: none; }
+      .sphere.s6 { display: none; }
+      .hero-count { display: none; }
+    }
+  </style>
+
+  <div class="top-bar"></div>
+
+  <!-- ── HERO SECTION ── -->
+  <section class="hero-wrap">
+
+    <!-- Wave background -->
+    <div class="wave-canvas" aria-hidden="true">
+      <!-- Wave 3 — back, electric blue -->
+      <svg class="wave-svg w3" viewBox="0 0 1440 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="rgba(0,141,218,0.08)"
+          d="M0,224L60,213.3C120,203,240,181,360,186.7C480,192,600,224,720,229.3C840,235,960,213,1080,197.3C1200,181,1320,171,1380,165.3L1440,160L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"/>
+      </svg>
+      <!-- Wave 2 — mid, neon green -->
+      <svg class="wave-svg w2" viewBox="0 0 1440 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="rgba(0,255,171,0.06)"
+          d="M0,256L80,245.3C160,235,320,213,480,208C640,203,800,213,960,218.7C1120,224,1280,224,1360,224L1440,224L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"/>
+      </svg>
+      <!-- Wave 1 — front, fire orange -->
+      <svg class="wave-svg w1" viewBox="0 0 1440 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="rgba(248,111,3,0.07)"
+          d="M0,288L120,272C240,256,480,224,720,224C960,224,1200,256,1320,272L1440,288L1440,320L1320,320C1200,320,960,320,720,320C480,320,240,320,120,320L0,320Z"/>
+      </svg>
+    </div>
+
+    <!-- Floating spheres -->
+    <div aria-hidden="true">
+      <div class="sphere s1"></div>
+      <div class="sphere s2"></div>
+      <div class="sphere s3"></div>
+      <div class="sphere s4"></div>
+      <div class="sphere s5"></div>
+      <div class="sphere s6"></div>
+    </div>
+
+    <!-- Noise texture -->
+    <div class="noise-overlay" aria-hidden="true"></div>
+
+    <!-- Text content -->
+    <div class="hero-inner">
+      <div class="hero-eyebrow">
+        <span class="hero-eyebrow-line"></span>
+        <span class="hero-eyebrow-dot"></span>
+        Gestión de Eventos
+      </div>
+
+      <h1 class="hero-title">
+        <span class="title-thin">Explora los</span>
+        <span class="title-line title-plain">Cronogramas</span>
+        <span class="title-line title-gradient">Digitales</span>
+      </h1>
+
+      <p class="hero-sub">
+        Accede a la agenda de tus eventos favoritos de forma rápida, dinámica y elegante.
+      </p>
+
+      <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem">
+        <a href="#eventos" class="hero-cta">
+          Ver eventos
+          <span class="hero-cta-arrow">→</span>
+        </a>
+        {cronogramas.length > 0 && (
+          <span class="hero-count">
+            <strong>{cronogramas.length}</strong> evento{cronogramas.length !== 1 ? 's' : ''} disponible{cronogramas.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- ── EVENTS SECTION ── -->
+  <div id="eventos">
+    <div class="section-head">
+      <span class="section-label">Próximos eventos</span>
+      <span class="section-rule"></span>
+    </div>
+
+    {cronogramas.length > 0 ? (
+      <div class="grid">
+        {cronogramas.map((c) => (
+          <a
+            href={`/cronograma/${c.slug}`}
+            class="event-card"
+            transition:name={`event-card-${c.slug}`}
+          >
+            <div class="card-visual">
+              <div
+                class="card-visual-inner"
+                style={c.imagen_portada
+                  ? `background-image: url(${c.imagen_portada})`
+                  : `background: linear-gradient(135deg, ${c.color_primario}55, ${c.color_secundario}33, #060E1C)`}
+                transition:name={`event-visual-${c.slug}`}
+              ></div>
+              <div class="card-visual-scrim"></div>
+            </div>
+            <div class="card-body">
+              <div
+                class="card-tag"
+                style={`background: ${c.color_primario}1A; color: ${c.color_primario}; border: 1px solid ${c.color_primario}44`}
+              >
+                <span class="card-tag-dot"></span>
+                Activo
+              </div>
+              <h2 transition:name={`event-title-${c.slug}`}>{c.nombre}</h2>
+              <p>{c.descripcion}</p>
+              <div class="card-footer">
+                <span class="card-footer-label">Ver programa completo</span>
+                <span
+                  class="btn-agenda"
+                  style={`background: linear-gradient(135deg, ${c.color_primario}, ${c.color_secundario})`}
+                >
+                  Agenda →
+                </span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="empty">
+        <div class="empty-inner">
+          <h3>No hay eventos disponibles</h3>
+          <p>Vuelve más tarde para descubrir nuevos cronogramas.</p>
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer class="site-footer">
+    <p class="footer-label">desarrollado por</p>
+    <img src="/morna-logo.png" alt="Morna Tech" class="footer-logo-img" />
+    <p class="footer-copy">© 2026 Morna Tech · Todos los derechos reservados</p>
+  </footer>
+</CronogramaLayout>

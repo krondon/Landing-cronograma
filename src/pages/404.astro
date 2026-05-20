@@ -1,0 +1,76 @@
+---
+import CronogramaLayout from '../layouts/CronogramaLayout.astro';
+---
+
+<CronogramaLayout
+  title="Página no encontrada"
+  colorFondo="#0B192C"
+  colorTexto="#E2E8F0"
+  colorPrimario="#008DDA"
+>
+  <style>
+    .not-found {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+    }
+    .code {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(6rem, 20vw, 12rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.05em;
+      background: linear-gradient(135deg, #F86F03, #008DDA, #00FFAB);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+    .msg {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.2rem, 3vw, 1.75rem);
+      font-weight: 700;
+      color: #E2E8F0;
+      margin-bottom: 0.75rem;
+    }
+    .sub {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      color: rgba(148,163,184,0.6);
+      margin-bottom: 2.5rem;
+    }
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.85rem 2rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(12px);
+      border-radius: 50px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #E2E8F0;
+      text-decoration: none;
+      transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+    }
+    .btn-back:hover {
+      background: rgba(0,141,218,0.15);
+      border-color: rgba(0,141,218,0.4);
+      box-shadow: 0 0 24px rgba(0,141,218,0.25);
+    }
+  </style>
+
+  <div class="not-found">
+    <div class="code">404</div>
+    <p class="msg">Página no encontrada</p>
+    <p class="sub">El cronograma que buscas no existe o fue movido.</p>
+    <a href="/" class="btn-back">← Volver al inicio</a>
+  </div>
+</CronogramaLayout>

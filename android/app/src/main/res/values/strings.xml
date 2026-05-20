@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Expo FedeIndustria</string>
+    <string name="title_activity_main">Expo FedeIndustria</string>
+    <string name="package_name">com.morna.cronograma</string>
+    <string name="custom_url_scheme">com.morna.cronograma</string>
+</resources>

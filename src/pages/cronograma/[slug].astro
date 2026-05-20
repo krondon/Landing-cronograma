@@ -1,0 +1,1548 @@
+---
+import CronogramaLayout from '../../layouts/CronogramaLayout.astro';
+import { getCronogramaBySlug, getAllCronogramas, formatFecha, formatHora, getPonentesDelDia } from '../../lib/cronogramas';
+import type { Actividad, Fecha } from '../../lib/cronogramas';
+
+export async function getStaticPaths() {
+  const cronogramas = await getAllCronogramas();
+  return cronogramas.map((c) => ({
+    params: { slug: c.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const cronograma = await getCronogramaBySlug(slug!);
+
+if (!cronograma) {
+  return Astro.redirect('/404');
+}
+
+const {
+  nombre,
+  descripcion,
+  imagen_portada,
+  color_primario,
+  color_secundario,
+  color_fondo,
+  color_texto,
+  tema,
+  cronograma_fechas,
+} = cronograma;
+
+const TIPO_LABELS: Record<string, string> = {
+  actividad: 'Conferencia',
+  receso: 'Receso',
+  networking: 'Networking',
+  taller: 'Taller',
+  panel: 'Panel',
+};
+
+const TIPO_COLORS: Record<string, string> = {
+  actividad: color_primario,
+  receso: '#00FFAB',
+  networking: '#F86F03',
+  taller: '#8B5CF6',
+  panel: color_secundario,
+};
+
+const lugar = cronograma_fechas
+  .flatMap(f => f.cronograma_actividades)
+  .find(a => a.lugar)?.lugar ?? null;
+
+const isClaro = tema === 'claro';
+
+const themeVars = {
+  colorPrimario: color_primario,
+  colorSecundario: color_secundario,
+  colorFondo: color_fondo,
+  colorTexto: color_texto,
+  
+  heroBgGradient: isClaro
+    ? 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 60%, #F1F5F9 100%)'
+    : 'linear-gradient(145deg, #060E1C 0%, #0D1F38 55%, #0B192C 100%)',
+    
+  glowOpacity: isClaro ? '0.06' : '0.13',
+  glowSecondaryOpacity: isClaro ? '0.04' : '0.1',
+  
+  watermarkStroke: isClaro
+    ? '1.5px rgba(15, 23, 42, 0.1)'
+    : '1.5px rgba(255, 255, 255, 0.04)',
+    
+  metaChipBg: isClaro ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.06)',
+  metaChipBorder: isClaro ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.1)',
+  metaChipText: isClaro ? 'rgba(15, 23, 42, 0.6)' : 'rgba(226, 232, 240, 0.7)',
+  
+  dayCardBg: isClaro ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)',
+  dayCardBorder: isClaro ? 'rgba(15, 23, 42, 0.07)' : 'rgba(255, 255, 255, 0.09)',
+  dayCardShadow: isClaro ? '0 4px 20px rgba(15, 23, 42, 0.03)' : 'none',
+  
+  fechasTabsBg: isClaro ? 'rgba(15, 23, 42, 0.02)' : 'rgba(255, 255, 255, 0.04)',
+  fechasTabsBorder: isClaro ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.08)',
+  fechaTabColor: isClaro ? 'rgba(15, 23, 42, 0.55)' : 'rgba(148, 163, 184, 0.8)',
+  fechaTabHoverBg: isClaro ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.06)',
+  
+  timelineLine: isClaro
+    ? 'linear-gradient(to bottom, transparent 0%, rgba(15, 23, 42, 0.06) 8%, rgba(15, 23, 42, 0.06) 92%, transparent 100%)'
+    : 'linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.1) 8%, rgba(255, 255, 255, 0.1) 92%, transparent 100%)',
+  timelineTimeColor: isClaro ? 'rgba(15, 23, 42, 0.45)' : 'rgba(148, 163, 184, 0.55)',
+  
+  actividadCardBg: isClaro ? 'rgba(2, 132, 199, 0.06)' : 'rgba(255, 255, 255, 0.04)',
+  actividadCardBorder: isClaro ? 'rgba(2, 132, 199, 0.14)' : 'rgba(255, 255, 255, 0.07)',
+  cardShadow: isClaro ? '0 4px 18px rgba(2, 132, 199, 0.03)' : '0 2px 12px rgba(0, 0, 0, 0.25)',
+  
+  textHeadingColor: isClaro ? '#0F172A' : '#E2E8F0',
+  textDescColor: isClaro ? '#475569' : 'rgba(148, 163, 184, 0.75)',
+  cardBodyBgHover: isClaro ? 'rgba(2, 132, 199, 0.1)' : 'rgba(255, 255, 255, 0.07)',
+  
+  badgeActividadBg: isClaro ? 'rgba(2, 132, 199, 0.1)' : 'rgba(255, 255, 255, 0.06)',
+  badgeActividadColor: isClaro ? '#0284C7' : 'var(--colorPrimario)',
+  badgeActividadBorder: isClaro ? 'rgba(2, 132, 199, 0.18)' : 'rgba(255, 255, 255, 0.12)',
+  
+  badgeRecesoBg: isClaro ? 'rgba(16, 185, 129, 0.1)' : 'rgba(0, 255, 171, 0.12)',
+  badgeRecesoColor: isClaro ? '#059669' : '#00FFAB',
+  badgeRecesoBorder: isClaro ? 'rgba(16, 185, 129, 0.18)' : 'rgba(0, 255, 171, 0.2)',
+  
+  badgeNetworkingBg: isClaro ? 'rgba(249, 115, 22, 0.1)' : 'rgba(248, 111, 3, 0.15)',
+  badgeNetworkingColor: isClaro ? '#EA580C' : '#FF8C35',
+  badgeNetworkingBorder: isClaro ? 'rgba(249, 115, 22, 0.18)' : 'rgba(248, 111, 3, 0.25)',
+  
+  badgeTallerBg: isClaro ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.15)',
+  badgeTallerColor: isClaro ? '#7C3AED' : '#A78BFA',
+  badgeTallerBorder: isClaro ? 'rgba(139, 92, 246, 0.18)' : 'rgba(139, 92, 246, 0.25)',
+  
+  badgePanelBg: isClaro ? 'rgba(236, 72, 153, 0.1)' : 'rgba(168, 85, 247, 0.15)',
+  badgePanelColor: isClaro ? '#DB2777' : '#C084FC',
+  badgePanelBorder: isClaro ? 'rgba(236, 72, 153, 0.18)' : 'rgba(168, 85, 247, 0.25)',
+  
+  speakerChipBg: isClaro ? 'rgba(15, 23, 42, 0.03)' : 'rgba(255, 255, 255, 0.06)',
+  speakerChipBorder: isClaro ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.1)',
+  speakerChipText: isClaro ? '#334155' : '#E2E8F0',
+  speakerChipHoverBg: isClaro ? 'rgba(2, 132, 199, 0.08)' : 'rgba(255, 255, 255, 0.08)',
+  
+  titleDecorColor: isClaro ? 'rgba(15, 23, 42, 0.07)' : 'rgba(255, 255, 255, 0.07)',
+  
+  footerBg: isClaro ? 'rgba(15, 23, 42, 0.02)' : 'rgba(6, 14, 28, 0.4)',
+  footerBorder: isClaro ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+  footerLogoFilter: isClaro ? 'none' : 'brightness(0) invert(1)',
+  footerLogoOpacity: isClaro ? '0.85' : '0.7',
+};
+
+const maxActividades = Math.max(
+  ...cronograma_fechas.map(f => f.cronograma_actividades.length), 1
+);
+---
+
+<CronogramaLayout
+  title={nombre}
+  description={descripcion ?? ''}
+  ogImage={imagen_portada ?? ''}
+  colorFondo={color_fondo}
+  colorTexto={color_texto}
+  colorPrimario={color_primario}
+>
+  <style define:vars={themeVars}>
+
+    /* ── TOP BAR ── */
+    .top-bar {
+      height: 3px;
+      background: linear-gradient(90deg, var(--colorPrimario) 0%, var(--colorSecundario) 100%);
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 40vh;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      padding: 7rem 4rem 5rem;
+      gap: 4rem;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--heroBgGradient);
+    }
+    .hero-bg.has-image {
+      background-size: cover;
+      background-position: center;
+    }
+    /* Dot grid */
+    .hero-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.09) 1px, transparent 1px);
+      background-size: 28px 28px;
+      z-index: 1;
+    }
+    .hero-bg.has-image::before { display: none; }
+    /* Bottom fade */
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 50%, var(--colorFondo) 100%);
+      z-index: 2;
+    }
+    /* Animated glow — primary color */
+    .hero-glow-primary {
+      position: absolute;
+      width: 480px; height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--colorPrimario) 0%, transparent 68%);
+      opacity: var(--glowOpacity);
+      filter: blur(70px);
+      top: -120px; right: 80px;
+      z-index: 1; pointer-events: none;
+      animation: glowBreath 7s ease-in-out infinite;
+    }
+    /* Animated glow — secondary color */
+    .hero-glow-secondary {
+      position: absolute;
+      width: 380px; height: 380px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--colorSecundario) 0%, transparent 68%);
+      opacity: var(--glowSecondaryOpacity);
+      filter: blur(90px);
+      bottom: -60px; left: 5%;
+      z-index: 1; pointer-events: none;
+      animation: glowBreath 9s ease-in-out infinite;
+      animation-delay: -4s;
+    }
+    @keyframes glowBreath {
+      0%, 100% { opacity: 0.1; transform: scale(1); }
+      50%       { opacity: 0.22; transform: scale(1.18); }
+    }
+    /* Giant watermark year */
+    .hero-watermark {
+      position: absolute;
+      right: -30px; bottom: -50px;
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(10rem, 22vw, 18rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.06em;
+      color: transparent;
+      -webkit-text-stroke: var(--watermarkStroke);
+      user-select: none; pointer-events: none;
+      z-index: 1;
+    }
+    /* Horizontal accent line */
+    .hero-accent-line {
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        var(--colorPrimario) 30%,
+        var(--colorSecundario) 70%,
+        transparent 100%
+      );
+      opacity: 0.35;
+    }
+
+    /* ── HERO LEFT CONTENT ── */
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      animation: heroEnter 0.6s cubic-bezier(0.2,0,0,1) both;
+    }
+    @keyframes heroEnter {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--metaChipBg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--metaChipBorder);
+      padding: 0.5rem 1.2rem;
+      border-radius: 50px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--metaChipText);
+      margin-bottom: 2rem;
+    }
+    .hero-badge-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: #00FFAB;
+      box-shadow: 0 0 10px #00FFAB, 0 0 20px rgba(0,255,171,0.4);
+      animation: blink 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3rem, 6vw, 4.8rem);
+      font-weight: 800;
+      color: var(--textHeadingColor);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+    /* Highlighted last word of title */
+    .hero-title-accent {
+      background: linear-gradient(95deg, var(--colorPrimario) 0%, #059669 50%, var(--colorSecundario) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      color: var(--metaChipText);
+      max-width: 600px;
+      line-height: 1.7;
+    }
+    /* Meta chips row */
+    .hero-meta {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--metaChipBg);
+      border: 1px solid var(--metaChipBorder);
+      border-radius: 50px;
+      padding: 0.5rem 1.1rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--metaChipText);
+      backdrop-filter: blur(8px);
+    }
+    .meta-chip-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--colorPrimario);
+      flex-shrink: 0;
+    }
+
+    /* ── DAY CARDS (right column) ── */
+    .hero-days {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      animation: heroEnter 0.6s cubic-bezier(0.2,0,0,1) 0.12s both;
+    }
+    .day-card {
+      background: var(--dayCardBg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--dayCardBorder);
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      min-width: 220px;
+      cursor: pointer;
+      transition: border-color 0.25s, transform 0.28s, box-shadow 0.28s;
+      text-decoration: none;
+      box-shadow: var(--dayCardShadow);
+    }
+    .day-card:hover {
+      border-color: var(--colorPrimario);
+      transform: translateX(-5px);
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08), 0 0 0 1px var(--colorPrimario);
+    }
+    .day-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .day-card-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--textHeadingColor);
+    }
+    .day-card-count {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--badgeActividadColor);
+      background: var(--badgeActividadBg);
+      border: 1px solid var(--badgeActividadBorder);
+      border-radius: 50px;
+      padding: 0.1rem 0.5rem;
+    }
+    .day-card-times {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.72rem;
+      color: var(--metaChipText);
+      margin-bottom: 0.65rem;
+    }
+    /* Activity bar */
+    .day-card-bar {
+      height: 3px;
+      background: var(--fechasTabsBorder);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .day-card-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--colorPrimario), var(--colorSecundario));
+      transition: width 0.8s cubic-bezier(0.2,0,0,1);
+    }
+
+    /* ── RESPONSIVE HERO ── */
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 3.5rem 1.5rem 3rem;
+        min-height: 380px;
+        gap: 2rem;
+      }
+      .hero-days {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        width: 100%;
+      }
+      .day-card {
+        min-width: 0;
+        width: 100%;
+        padding: 0.75rem 0.55rem;
+      }
+      .day-card-label {
+        font-size: clamp(0.75rem, 2.8vw, 0.88rem);
+      }
+      .day-card-times {
+        font-size: clamp(0.62rem, 2.2vw, 0.7rem);
+      }
+      .day-card-count {
+        font-size: 0.65rem;
+        padding: 0.05rem 0.35rem;
+      }
+      .day-card:hover { transform: translateY(-4px); }
+      .hero-watermark { 
+        font-size: clamp(5.5rem, 26vw, 10rem);
+        bottom: 4rem;
+        right: -10px;
+      }
+    }
+    @media (max-width: 540px) {
+      .hero { padding: 3rem 1rem 2.5rem; }
+      .hero-title { font-size: clamp(1.8rem, 8vw, 2.6rem); }
+      .hero-watermark { bottom: 5rem; }
+    }
+
+    /* ── MAIN ── */
+    .main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+    }
+
+    /* ── TABS ── */
+    .fechas-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 2.75rem;
+      background: var(--fechasTabsBg);
+      border: 1px solid var(--fechasTabsBorder);
+      border-radius: 16px;
+      padding: 4px;
+      backdrop-filter: blur(12px);
+    }
+    .fecha-tab {
+      flex: 1;
+      padding: 0.7rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--fechaTabColor);
+      transition: all 0.22s;
+      text-align: center;
+      text-transform: capitalize;
+      letter-spacing: 0.01em;
+    }
+    .fecha-tab:hover {
+      color: var(--textHeadingColor);
+      background: var(--fechaTabHoverBg);
+    }
+    .fecha-tab.active {
+      background: var(--colorPrimario);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.15), 0 0 12px var(--colorPrimario);
+    }
+
+    /* ── PANELS ── */
+    .fecha-panel { display: none; }
+    .fecha-panel.active { display: block; }
+
+    /* ── TIMELINE ── */
+    .actividades-list {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      gap: 0;
+    }
+    .actividades-list::before {
+      content: '';
+      position: absolute;
+      left: 68px;
+      top: 12px;
+      bottom: 12px;
+      width: 1px;
+      background: var(--timelineLine);
+      pointer-events: none;
+    }
+    .actividad-card {
+      display: grid;
+      grid-template-columns: 68px 1fr;
+      gap: 1.5rem;
+      padding: 0.6rem 0;
+      position: relative;
+    }
+    .actividad-card[data-has-ponentes="true"] { cursor: pointer; }
+    .actividad-card::before {
+      content: '';
+      position: absolute;
+      left: 68px;
+      top: 1.05rem;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--colorPrimario);
+      border: 2px solid var(--colorFondo);
+      box-shadow: 0 0 0 2px var(--colorPrimario), 0 0 8px var(--colorPrimario);
+      transform: translateX(-50%);
+      z-index: 2;
+    }
+    .actividad-hora {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      padding-top: 0.8rem;
+      padding-right: 10px;
+    }
+    .hora-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--colorPrimario);
+      line-height: 1.2;
+      text-align: right;
+    }
+    .hora-fin {
+      font-size: 0.9rem;
+      color: var(--timelineTimeColor);
+      text-align: right;
+      margin-top: 2px;
+    }
+
+    /* Glass activity card */
+    .actividad-body {
+      background: var(--actividadCardBg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--actividadCardBorder);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--cardShadow);
+    }
+    .actividad-body::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 4px 0 0 4px;
+      background: var(--tipo-color);
+      box-shadow: 0 0 8px var(--tipo-color)88;
+    }
+    .actividad-card[data-has-ponentes="true"]:hover .actividad-body {
+      border-color: var(--colorPrimario);
+      background: var(--cardBodyBgHover);
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08), 0 0 0 1px var(--colorPrimario);
+      transform: translateX(4px);
+    }
+
+    .actividad-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .actividad-titulo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--textHeadingColor);
+      line-height: 1.35;
+      flex: 1;
+      min-width: 0;
+    }
+    .tipo-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 50px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .tipo-actividad  { background: var(--badgeActividadBg);  color: var(--badgeActividadColor); border: 1px solid var(--badgeActividadBorder); }
+    .tipo-receso     { background: var(--badgeRecesoBg);     color: var(--badgeRecesoColor); border: 1px solid var(--badgeRecesoBorder); }
+    .tipo-networking { background: var(--badgeNetworkingBg); color: var(--badgeNetworkingColor); border: 1px solid var(--badgeNetworkingBorder); }
+    .tipo-taller     { background: var(--badgeTallerBg);     color: var(--badgeTallerColor); border: 1px solid var(--badgeTallerBorder); }
+    .tipo-panel      { background: var(--badgePanelBg);      color: var(--badgePanelColor); border: 1px solid var(--badgePanelBorder); }
+
+    .actividad-desc {
+      font-size: 1.05rem;
+      color: var(--textDescColor);
+      line-height: 1.6;
+      margin-top: 0.4rem;
+    }
+    .actividad-lugar {
+      font-size: 0.95rem;
+      color: var(--timelineTimeColor);
+      margin-top: 0.5rem;
+    }
+
+    /* ── SPEAKER CHIPS ── */
+    .ponentes-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.8rem;
+    }
+    .ponente-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: var(--speakerChipBg);
+      border: 1px solid var(--speakerChipBorder);
+      border-radius: 50px;
+      padding: 0.28rem 0.75rem 0.28rem 0.3rem;
+      font-size: 0.78rem;
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      color: var(--speakerChipText);
+    }
+    .ponente-chip:hover {
+      background: var(--speakerChipHoverBg);
+      border-color: var(--colorPrimario);
+      box-shadow: 0 0 12px var(--colorPrimario);
+    }
+    .ponente-chip img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .ponente-chip-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--colorPrimario), var(--colorSecundario));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .ponente-chip-name  { font-weight: 600; color: var(--textHeadingColor); }
+    .ponente-chip-cargo { color: var(--timelineTimeColor); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: rgba(148,163,184,0.5);
+    }
+
+    /* ── INFINITE SPEAKERS CAROUSEL (LARGE POSTER CARDS) ── */
+    .ponentes-marquee-section {
+      margin-bottom: 3rem;
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      padding: 0.5rem 0;
+    }
+    .ponentes-marquee-title {
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--colorPrimario);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0 0.25rem;
+    }
+    .ponentes-marquee-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--titleDecorColor);
+    }
+    .marquee-container {
+      position: relative;
+      width: 100%;
+      overflow-x: auto;
+      scrollbar-width: none; /* Hide scrollbar in Firefox */
+      display: flex;
+      mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    }
+    .marquee-container::-webkit-scrollbar {
+      display: none; /* Hide scrollbar in Chrome/Safari */
+    }
+    .single-ponente-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 1rem 0;
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      /* Scroll to the left */
+      animation: marqueeScroll 20s linear infinite;
+    }
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+    .marquee-group {
+      display: flex;
+      gap: 1.5rem;
+      padding-right: 1.5rem;
+      flex-shrink: 0;
+    }
+    @keyframes marqueeScroll {
+      0% {
+        transform: translate3d(0, 0, 0);
+      }
+      100% {
+        transform: translate3d(-50%, 0, 0);
+      }
+    }
+    .ponente-marquee-card {
+      position: relative;
+      height: 440px;
+      width: auto;
+      min-width: 250px; /* Pre-allocate minimal space to prevent flexbox collapsing */
+      cursor: pointer;
+      transition: transform 0.32s;
+      flex-shrink: 0;
+    }
+    .ponente-marquee-card:not(:has(img)) {
+      width: 250px;
+    }
+    .ponente-marquee-card:hover {
+      transform: translateY(-6px) scale(1.02);
+    }
+    .ponente-marquee-poster {
+      height: 100%;
+      width: auto;
+      display: block;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      transition: border-color 0.28s, box-shadow 0.32s;
+    }
+    .ponente-marquee-card:hover .ponente-marquee-poster {
+      border-color: var(--colorPrimario);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55),
+                  0 0 0 1px var(--colorPrimario),
+                  0 0 20px var(--colorPrimario)44;
+    }
+    
+    /* Placeholder for speakers without poster image */
+    .ponente-marquee-poster-placeholder {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      background: linear-gradient(145deg, #09172B 0%, #152E52 50%, #0B192C 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      position: relative;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      transition: border-color 0.28s, box-shadow 0.32s;
+      overflow: hidden;
+    }
+    .ponente-marquee-card:hover .ponente-marquee-poster-placeholder {
+      border-color: var(--colorPrimario);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55),
+                  0 0 0 1px var(--colorPrimario),
+                  0 0 20px var(--colorPrimario)44;
+    }
+    .ponente-marquee-poster-placeholder::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+    }
+    .ponente-placeholder-logo {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--colorPrimario);
+      opacity: 0.8;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 50px;
+      padding: 0.25rem 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 1;
+    }
+    .ponente-placeholder-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--colorPrimario), var(--colorSecundario));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      z-index: 1;
+    }
+    .ponente-placeholder-info {
+      z-index: 1;
+      width: 100%;
+    }
+    .ponente-placeholder-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.4rem;
+      line-height: 1.2;
+    }
+    .ponente-placeholder-cargo {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      color: rgba(148, 163, 184, 0.7);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .ponente-placeholder-empresa {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.72rem;
+      color: var(--colorSecundario);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* ── FOOTER ── */
+    .cronograma-footer {
+      margin-top: 3rem;
+      position: relative;
+      padding: 3rem 2rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--footerBg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--footerBorder);
+    }
+    .cronograma-footer::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #F86F03 0%, var(--colorPrimario) 50%, #00FFAB 100%);
+    }
+    .footer-label {
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--timelineTimeColor);
+      margin-bottom: 1.25rem;
+    }
+    .footer-logo-img {
+      width: clamp(140px, 35vw, 200px);
+      height: auto;
+      display: block;
+      margin-bottom: 1.5rem;
+      filter: var(--footerLogoFilter);
+      opacity: var(--footerLogoOpacity);
+    }
+    .footer-copy {
+      font-size: 0.62rem;
+      color: var(--timelineTimeColor);
+      letter-spacing: 0.07em;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .hero { min-height: 240px; padding: 2.5rem 1rem; }
+      .hero-title { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+      .main { padding: 1.5rem 0.875rem 3rem; }
+
+      .fechas-tabs { gap: 2px; padding: 3px; border-radius: 12px; }
+      .fecha-tab { font-size: 0.75rem; padding: 0.6rem 0.4rem; border-radius: 9px; }
+
+      .actividades-list::before { left: 56px; }
+      .actividad-card { grid-template-columns: 56px 1fr; gap: 0.75rem; }
+      .actividad-card::before { left: 56px; }
+      .actividad-hora { padding-right: 6px; }
+      .hora-text { font-size: 0.75rem; }
+
+      .actividad-body { padding: 0.85rem 1rem; }
+      .actividad-titulo { font-size: 0.88rem; }
+      .tipo-badge { font-size: 0.58rem; padding: 0.15rem 0.45rem; }
+
+      .ponente-marquee-card {
+        height: 290px;
+        width: auto;
+        min-width: 165px;
+      }
+      .ponente-marquee-card:not(:has(img)) {
+        width: 165px;
+      }
+      .ponente-marquee-poster {
+        border-radius: 14px;
+      }
+      .ponente-marquee-poster-placeholder {
+        border-radius: 14px;
+      }
+      .ponente-placeholder-logo {
+        font-size: 0.48rem;
+        padding: 0.18rem 0.5rem;
+      }
+      .ponente-placeholder-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 1.25rem;
+      }
+      .ponente-placeholder-name {
+        font-size: 0.82rem;
+        margin-bottom: 0.2rem;
+      }
+      .ponente-placeholder-cargo {
+        font-size: 0.58rem;
+      }
+      .ponente-placeholder-empresa {
+        font-size: 0.55rem;
+      }
+      .ponentes-marquee-title { font-size: 0.62rem; }
+    }
+  </style>
+
+  <style is:global>
+    /* ── MODAL (global: elementos creados por JS) ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(6,14,28,0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-panel {
+      background: #0D1E35;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 28px;
+      overflow: hidden;
+      transform: translateY(28px) scale(0.96);
+      transition: transform 0.32s cubic-bezier(0.2,0,0,1);
+      box-shadow: 0 48px 96px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,141,218,0.15);
+      line-height: 0;
+    }
+    .modal-backdrop.open .modal-panel {
+      transform: translateY(0) scale(1);
+    }
+    .modal-photo-area {
+      position: relative;
+      background: #0D1E35;
+      line-height: 0;
+    }
+    .modal-photo-area img {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: calc(100vw - 3rem);
+      max-height: calc(90vh - 3rem);
+    }
+    .modal-photo-inicial {
+      width: 240px;
+      height: 240px;
+      background: linear-gradient(135deg, var(--colorPrimario, #008DDA), var(--colorSecundario, #A855F7));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 6rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .modal-close {
+      position: absolute;
+      top: 0.9rem;
+      right: 0.9rem;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: background 0.2s, transform 0.2s;
+      line-height: 1;
+    }
+    .modal-close:hover {
+      background: rgba(0,0,0,0.75);
+      transform: scale(1.1);
+    }
+    .modal-info {
+      padding: 1.5rem;
+      background: #0D1E35;
+      line-height: 1.5;
+    }
+    .modal-activity-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(148,163,184,0.6);
+      margin-bottom: 0.75rem;
+    }
+    .modal-cargo {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #33A8E8;
+      margin-bottom: 0.2rem;
+    }
+    .modal-empresa {
+      font-size: 0.82rem;
+      color: rgba(148,163,184,0.6);
+      margin-bottom: 1rem;
+    }
+    .modal-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin: 1rem 0;
+    }
+    .modal-bio {
+      font-size: 0.875rem;
+      color: rgba(148,163,184,0.75);
+      line-height: 1.7;
+    }
+    .modal-multi-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0D1E35;
+      line-height: 1.5;
+    }
+    .modal-multi-title {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(148,163,184,0.6);
+    }
+    .modal-close-flat {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(148,163,184,0.8);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      line-height: 1;
+    }
+    .modal-close-flat:hover { background: rgba(255,255,255,0.12); }
+    .modal-ponente-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .modal-ponente-item:last-child { border-bottom: none; }
+    .modal-ponente-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal-ponente-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: rgba(255,255,255,0.05);
+    }
+    .modal-ponente-avatar-inicial {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--colorPrimario, #008DDA), var(--colorSecundario, #A855F7));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .modal-ponente-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #E2E8F0;
+    }
+    .modal-ponente-cargo {
+      font-size: 0.8rem;
+      color: rgba(148,163,184,0.65);
+      margin-top: 2px;
+    }
+    @media (max-width: 600px) {
+      .modal-panel { border-radius: 20px; }
+    }
+  </style>
+
+  <div class="top-bar"></div>
+
+  <!-- Hero -->
+  <header class="hero" transition:name={`event-card-${cronograma.slug}`}>
+    <!-- Background layers -->
+    <div
+      class={`hero-bg${imagen_portada ? ' has-image' : ''}`}
+      style={imagen_portada ? `background-image: url(${imagen_portada})` : undefined}
+      transition:name={`event-visual-${cronograma.slug}`}
+    />
+    <div class="hero-accent-line"></div>
+    <div class="hero-glow-primary"></div>
+    <div class="hero-glow-secondary"></div>
+    <div class="hero-watermark" aria-hidden="true">2026</div>
+
+    <!-- Left: Title + meta -->
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Evento Activo
+      </div>
+      <h1 class="hero-title" transition:name={`event-title-${cronograma.slug}`}>
+        {(() => {
+          const words = nombre.split(' ');
+          const last  = words.pop();
+          return (
+            <>
+              {words.join(' ')}{' '}
+              <span class="hero-title-accent">{last}</span>
+            </>
+          );
+        })()}
+      </h1>
+      {descripcion && <p class="hero-desc">{descripcion}</p>}
+
+      <!-- Meta chips -->
+      <div class="hero-meta">
+
+        {lugar && (
+          <span class="meta-chip">
+            <span class="meta-chip-dot" style="background:#F86F03"></span>
+            {lugar}
+          </span>
+        )}
+        <span class="meta-chip">
+          <span class="meta-chip-dot" style="background:#00FFAB"></span>
+          +{cronograma_fechas.reduce((s, f) => s + f.cronograma_actividades.length, 0)} actividades
+        </span>
+      </div>
+    </div>
+
+    <!-- Right: Day cards -->
+    <div class="hero-days">
+      {cronograma_fechas.map((f: Fecha) => {
+        const count    = f.cronograma_actividades.length;
+        const pct      = Math.round((count / maxActividades) * 100);
+        const primera  = f.cronograma_actividades[0]?.hora_inicio;
+        const ultima   = f.cronograma_actividades[f.cronograma_actividades.length - 1]?.hora_fin
+                      ?? f.cronograma_actividades[f.cronograma_actividades.length - 1]?.hora_inicio;
+        return (
+          <div class="day-card">
+            <div class="day-card-top">
+              <span class="day-card-label">{f.etiqueta ?? f.fecha}</span>
+              <span class="day-card-count">{count}</span>
+            </div>
+            {primera && (
+              <p class="day-card-times">{primera.slice(0,5)}{ultima ? ` → ${ultima.slice(0,5)}` : ''}</p>
+            )}
+            <div class="day-card-bar">
+              <div class="day-card-bar-fill" style={`width:${pct}%`}></div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </header>
+
+  <main class="main">
+    {cronograma_fechas.length === 0 ? (
+      <div class="empty-state">
+        <p>No hay fechas cargadas todavía.</p>
+      </div>
+    ) : (
+      <>
+        <!-- Date tabs -->
+        <div class="fechas-tabs" id="fechas-tabs">
+          {cronograma_fechas.map((f: Fecha, i: number) => (
+            <button
+              class={`fecha-tab${i === 0 ? ' active' : ''}`}
+              data-index={i}
+            >
+              {formatFecha(f.fecha, f.etiqueta)}
+            </button>
+          ))}
+        </div>
+
+        <!-- Activity panels -->
+        {cronograma_fechas.map((f: Fecha, i: number) => {
+          const ponentesDelDia = getPonentesDelDia(f);
+          return (
+            <div class={`fecha-panel${i === 0 ? ' active' : ''}`} data-index={i}>
+              {f.cronograma_actividades.length === 0 ? (
+                <p style="color:rgba(148,163,184,0.5); text-align:center; padding:3rem 0">
+                  Sin actividades para esta fecha.
+                </p>
+              ) : (
+                <>
+                  {ponentesDelDia.length === 1 ? (
+                    <div class="ponentes-marquee-section">
+                      <p class="ponentes-marquee-title">Ponente del día</p>
+                      <div class="single-ponente-container">
+                        {(() => {
+                          const { ponente: p } = ponentesDelDia[0];
+                          return (
+                            <div class="ponente-marquee-card" data-ponente={JSON.stringify(p)}>
+                              {p.foto_url ? (
+                                <img class="ponente-marquee-poster" src={p.foto_url} alt={p.nombre} />
+                              ) : (
+                                <div class="ponente-marquee-poster-placeholder">
+                                  <div class="ponente-placeholder-logo">Expo FedeIndustria 2026</div>
+                                  <div class="ponente-placeholder-avatar">
+                                    {p.nombre.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div class="ponente-placeholder-info">
+                                    <p class="ponente-placeholder-name">{p.nombre}</p>
+                                    {p.cargo && <p class="ponente-placeholder-cargo">{p.cargo}</p>}
+                                    {p.empresa && <p class="ponente-placeholder-empresa">{p.empresa}</p>}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  ) : ponentesDelDia.length > 1 ? (
+                    <div class="ponentes-marquee-section">
+                      <p class="ponentes-marquee-title">Ponentes del día</p>
+                      <div class="marquee-container">
+                        <div class="marquee-track">
+                          <div class="marquee-group">
+                            {(() => {
+                              let baseList = [...ponentesDelDia];
+                              while (baseList.length > 0 && baseList.length < 8) {
+                                baseList = [...baseList, ...ponentesDelDia];
+                              }
+                              return baseList.map(({ ponente: p }) => (
+                                <div class="ponente-marquee-card" data-ponente={JSON.stringify(p)}>
+                                  {p.foto_url ? (
+                                    <img class="ponente-marquee-poster" src={p.foto_url} alt={p.nombre} />
+                                  ) : (
+                                    <div class="ponente-marquee-poster-placeholder">
+                                      <div class="ponente-placeholder-logo">Expo FedeIndustria 2026</div>
+                                      <div class="ponente-placeholder-avatar">
+                                        {p.nombre.charAt(0).toUpperCase()}
+                                      </div>
+                                      <div class="ponente-placeholder-info">
+                                        <p class="ponente-placeholder-name">{p.nombre}</p>
+                                        {p.cargo && <p class="ponente-placeholder-cargo">{p.cargo}</p>}
+                                        {p.empresa && <p class="ponente-placeholder-empresa">{p.empresa}</p>}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                          <div class="marquee-group" aria-hidden="true">
+                            {(() => {
+                              let baseList = [...ponentesDelDia];
+                              while (baseList.length > 0 && baseList.length < 8) {
+                                baseList = [...baseList, ...ponentesDelDia];
+                              }
+                              return baseList.map(({ ponente: p }) => (
+                                <div class="ponente-marquee-card" data-ponente={JSON.stringify(p)}>
+                                  {p.foto_url ? (
+                                    <img class="ponente-marquee-poster" src={p.foto_url} alt={p.nombre} />
+                                  ) : (
+                                    <div class="ponente-marquee-poster-placeholder">
+                                      <div class="ponente-placeholder-logo">Expo FedeIndustria 2026</div>
+                                      <div class="ponente-placeholder-avatar">
+                                        {p.nombre.charAt(0).toUpperCase()}
+                                      </div>
+                                      <div class="ponente-placeholder-info">
+                                        <p class="ponente-placeholder-name">{p.nombre}</p>
+                                        {p.cargo && <p class="ponente-placeholder-cargo">{p.cargo}</p>}
+                                        {p.empresa && <p class="ponente-placeholder-empresa">{p.empresa}</p>}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div class="actividades-list">
+                    {f.cronograma_actividades.map((act: Actividad) => {
+                      const ponentes = act.cronograma_actividad_ponentes.map(ap => ap.ponente);
+                      const tipoColor = TIPO_COLORS[act.tipo] ?? color_primario;
+                      return (
+                        <div
+                          class="actividad-card"
+                          data-titulo={act.titulo}
+                          data-ponentes={JSON.stringify(ponentes)}
+                          data-has-ponentes={ponentes.length > 0 ? "true" : "false"}
+                        >
+                          <div class="actividad-hora">
+                            <span class="hora-text">{formatHora(act.hora_inicio)}</span>
+                            {act.hora_fin && <span class="hora-fin">{formatHora(act.hora_fin)}</span>}
+                          </div>
+                          <div class="actividad-body" style={`--tipo-color: ${tipoColor}`}>
+                            <div class="actividad-header">
+                              <span class="actividad-titulo">{act.titulo}</span>
+                              <span class={`tipo-badge tipo-${act.tipo}`}>
+                                {TIPO_LABELS[act.tipo] ?? act.tipo}
+                              </span>
+                            </div>
+                            {act.descripcion && (
+                              <p class="actividad-desc">{act.descripcion}</p>
+                            )}
+                            {act.lugar && (
+                              <p class="actividad-lugar">📍 {act.lugar}</p>
+                            )}
+                            {ponentes.length > 0 && (
+                              <div class="ponentes-row">
+                                {ponentes.map(p => (
+                                  <div class="ponente-chip">
+                                    {p.foto_url ? (
+                                      <img src={p.foto_url} alt={p.nombre} />
+                                    ) : (
+                                      <div class="ponente-chip-avatar">
+                                        {p.nombre.charAt(0).toUpperCase()}
+                                      </div>
+                                    )}
+                                    <span class="ponente-chip-name">{p.nombre}</span>
+                                    {p.cargo && (
+                                      <span class="ponente-chip-cargo"> · {p.cargo}</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+
+                </>
+              )}
+            </div>
+          );
+        })}
+      </>
+    )}
+  </main>
+
+  <footer class="cronograma-footer">
+    <p class="footer-label">desarrollado por</p>
+    <img src="/morna-logo.png" alt="Morna Tech" class="footer-logo-img" />
+    <p class="footer-copy">© 2026 Morna Tech · Todos los derechos reservados</p>
+  </footer>
+
+  <!-- Modal -->
+  <div id="ponente-modal" class="modal-backdrop">
+    <div class="modal-panel" id="modal-panel"></div>
+  </div>
+
+  <script>
+    /* ── TABS ── */
+    const tabs = document.querySelectorAll<HTMLButtonElement>('.fecha-tab');
+    const panels = document.querySelectorAll<HTMLElement>('.fecha-panel');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const idx = tab.dataset.index;
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelector<HTMLElement>(`.fecha-panel[data-index="${idx}"]`)?.classList.add('active');
+      });
+    });
+
+    /* ── MODAL ── */
+    const backdrop = document.getElementById('ponente-modal')!;
+    const panel    = document.getElementById('modal-panel')!;
+
+    function esc(s: string) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function photoOrInitial(fotoUrl: string|null, nombre: string, cls: string) {
+      return fotoUrl
+        ? `<img src="${esc(fotoUrl)}" alt="${esc(nombre)}" />`
+        : `<div class="${cls}">${nombre.charAt(0).toUpperCase()}</div>`;
+    }
+
+    function openModal(titulo: string, ponentes: any[]) {
+      if (!ponentes.length) return;
+
+      let html = '';
+
+      if (ponentes.length === 1) {
+        const p = ponentes[0];
+        if (p.foto_url) {
+          html = `
+            <div class="modal-photo-area">
+              <img src="${esc(p.foto_url)}" alt="${esc(p.nombre)}" />
+              <button class="modal-close js-close">✕</button>
+            </div>`;
+        } else {
+          html = `
+            <div class="modal-photo-area" style="height:240px">
+              <div class="modal-photo-inicial">${p.nombre.charAt(0).toUpperCase()}</div>
+              <button class="modal-close js-close">✕</button>
+            </div>
+            <div class="modal-info">
+              <p class="modal-activity-label">${esc(titulo)}</p>
+              <p style="font-size:1.3rem;font-weight:800;color:#E2E8F0;margin-bottom:0.4rem">${esc(p.nombre)}</p>
+              ${p.cargo   ? `<p class="modal-cargo">${esc(p.cargo)}</p>`     : ''}
+              ${p.empresa ? `<p class="modal-empresa">${esc(p.empresa)}</p>` : ''}
+              ${(p.cargo || p.empresa) ? '<div class="modal-divider"></div>' : ''}
+              ${p.bio     ? `<p class="modal-bio">${esc(p.bio)}</p>`         : ''}
+            </div>`;
+        }
+      } else {
+        const items = ponentes.map(p => `
+          <div class="modal-ponente-item">
+            <div class="modal-ponente-avatar">
+              ${photoOrInitial(p.foto_url, p.nombre, 'modal-ponente-avatar-inicial')}
+            </div>
+            <div>
+              <p class="modal-ponente-name">${esc(p.nombre)}</p>
+              ${p.cargo ? `<p class="modal-ponente-cargo">${esc(p.cargo)}</p>` : ''}
+            </div>
+          </div>`).join('');
+
+        html = `
+          <div class="modal-multi-header">
+            <span class="modal-multi-title">${esc(titulo)}</span>
+            <button class="modal-close-flat js-close">✕</button>
+          </div>
+          <div class="modal-info">${items}</div>`;
+      }
+
+      panel.innerHTML = html;
+      backdrop.classList.add('open');
+      panel.querySelectorAll<HTMLButtonElement>('.js-close').forEach(btn => {
+        btn.addEventListener('click', closeModal);
+      });
+    }
+
+    function closeModal() {
+      backdrop.classList.remove('open');
+    }
+
+    backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    /* Activity cards */
+    document.querySelectorAll<HTMLElement>('.actividad-card[data-has-ponentes="true"]').forEach(card => {
+      card.addEventListener('click', () => {
+        const titulo   = card.dataset.titulo ?? '';
+        const ponentes = JSON.parse(card.dataset.ponentes ?? '[]');
+        openModal(titulo, ponentes);
+      });
+    });
+
+    /* Ponente cards in the marquee */
+    document.querySelectorAll<HTMLElement>('.ponente-marquee-card[data-ponente]').forEach(card => {
+      card.addEventListener('click', () => {
+        const p = JSON.parse(card.dataset.ponente ?? '{}');
+        openModal(p.cargo ?? '', [p]);
+      });
+    });
+  </script>
+</CronogramaLayout>
