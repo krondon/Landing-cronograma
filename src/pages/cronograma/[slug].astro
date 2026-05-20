@@ -229,7 +229,10 @@ const maxActividades = Math.max(
       line-height: 1;
       letter-spacing: -0.06em;
       color: transparent;
-      -webkit-text-stroke: var(--watermarkStroke);
+      background: linear-gradient(95deg, var(--colorPrimario) 0%, #059669 32%, #F86F03 66%, #CA8A04 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      opacity: 0.22;
       user-select: none; pointer-events: none;
       z-index: 1;
     }
@@ -252,6 +255,7 @@ const maxActividades = Math.max(
       position: relative;
       z-index: 3;
       flex: 1 1 400px;
+      min-width: 0;
       animation: heroEnter 0.6s cubic-bezier(0.2,0,0,1) both;
     }
     @keyframes heroEnter {
@@ -348,7 +352,7 @@ const maxActividades = Math.max(
         min-height: 380px;
         gap: 2rem;
       }
-      .hero-watermark { 
+      .hero-watermark {
         font-size: 20vw;
         font-size: clamp(5.5rem, 26vw, 10rem);
         bottom: 4rem;
@@ -357,7 +361,6 @@ const maxActividades = Math.max(
     }
     @media (max-width: 540px) {
       .hero { padding: 3rem 1rem 2.5rem; }
-      .hero-title { font-size: 9vw; font-size: clamp(1.8rem, 8vw, 2.6rem); }
       .hero-watermark { bottom: 5rem; }
     }
 
@@ -381,7 +384,7 @@ const maxActividades = Math.max(
     }
     .fecha-tab {
       flex: 1;
-      padding: 0.7rem 0.75rem;
+      padding: 0.85rem 0.75rem 0.75rem;
       border-radius: 12px;
       font-size: 0.875rem;
       font-weight: 600;
@@ -393,6 +396,11 @@ const maxActividades = Math.max(
       text-align: center;
       text-transform: capitalize;
       letter-spacing: 0.01em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      position: relative;
     }
     .fecha-tab:hover {
       color: var(--textHeadingColor);
@@ -402,6 +410,37 @@ const maxActividades = Math.max(
       background: var(--colorPrimario);
       color: #fff;
       box-shadow: 0 4px 16px rgba(15, 23, 42, 0.15), 0 0 12px var(--colorPrimario);
+    }
+    .fecha-tab-nombre {
+      font-size: 0.875rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .fecha-tab-horario {
+      font-size: 0.7rem;
+      font-weight: 400;
+      opacity: 0.75;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+    .fecha-tab-count {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--colorPrimario);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+    }
+    .fecha-tab.active .fecha-tab-count {
+      background: rgba(255,255,255,0.25);
     }
 
     /* ── PANELS ── */
@@ -835,11 +874,14 @@ const maxActividades = Math.max(
     /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
       .hero { min-height: 240px; padding: 2.5rem 1rem; }
-      .hero-title { font-size: 11vw; font-size: clamp(2.4rem, 11vw, 3.5rem); }
+      .hero-title { font-size: clamp(1.2rem, 8vw, 3rem); }
       .main { padding: 1.5rem 0.875rem 3rem; }
 
       .fechas-tabs { gap: 2px; padding: 3px; border-radius: 12px; }
-      .fecha-tab { font-size: 0.75rem; padding: 0.6rem 0.4rem; border-radius: 9px; }
+      .fecha-tab { font-size: 0.75rem; padding: 0.75rem 0.4rem 0.6rem; border-radius: 9px; }
+      .fecha-tab-nombre { font-size: 0.75rem; }
+      .fecha-tab-horario { font-size: 0.6rem; }
+      .fecha-tab-count { top: 5px; right: 5px; min-width: 16px; height: 16px; font-size: 0.55rem; padding: 0 3px; }
 
       .actividades-list::before { left: 56px; }
       .actividad-card { flex-direction: row; gap: 0.75rem; }
@@ -1141,14 +1183,23 @@ const maxActividades = Math.max(
       <>
         <!-- Date tabs -->
         <div class="fechas-tabs" id="fechas-tabs">
-          {cronograma_fechas.map((f: Fecha, i: number) => (
-            <button
-              class={`fecha-tab${i === 0 ? ' active' : ''}`}
-              data-index={i}
-            >
-              {formatFecha(f.fecha, f.etiqueta)}
-            </button>
-          ))}
+          {cronograma_fechas.map((f: Fecha, i: number) => {
+            const acts = f.cronograma_actividades;
+            const primeraHora = acts.length > 0 ? formatHora(acts[0].hora_inicio) : null;
+            const ultimaAct = acts.length > 0 ? acts[acts.length - 1] : null;
+            const ultimaHora = ultimaAct ? formatHora(ultimaAct.hora_fin ?? ultimaAct.hora_inicio) : null;
+            const horario = primeraHora && ultimaHora ? `${primeraHora} → ${ultimaHora}` : null;
+            return (
+              <button
+                class={`fecha-tab${i === 0 ? ' active' : ''}`}
+                data-index={i}
+              >
+                <span class="fecha-tab-nombre">{formatFecha(f.fecha, f.etiqueta)}</span>
+                {horario && <span class="fecha-tab-horario">{horario}</span>}
+                <span class="fecha-tab-count">{acts.length}</span>
+              </button>
+            );
+          })}
         </div>
 
         <!-- Activity panels -->
@@ -1327,6 +1378,39 @@ const maxActividades = Math.max(
   <div id="ponente-modal" class="modal-backdrop">
     <div class="modal-panel" id="modal-panel"></div>
   </div>
+
+  <script is:inline>
+    (function() {
+      function enterFullscreen() {
+        var el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+      }
+      function exitFullscreen() {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+      }
+      function isFullscreen() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+      }
+
+      document.addEventListener('touchstart', function() {
+        if (!isFullscreen()) enterFullscreen();
+      }, { once: true });
+
+      var lastScrollY = window.scrollY || window.pageYOffset || 0;
+      window.addEventListener('scroll', function() {
+        var currentScrollY = window.scrollY || window.pageYOffset || 0;
+        var scrollingUp = currentScrollY < lastScrollY;
+        lastScrollY = currentScrollY;
+        if (scrollingUp && currentScrollY <= 0 && isFullscreen()) {
+          exitFullscreen();
+        }
+      }, { passive: true });
+    })();
+  </script>
 
   <script is:inline>
     (function() {
