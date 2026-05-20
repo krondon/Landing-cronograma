@@ -1439,109 +1439,113 @@ const maxActividades = Math.max(
   </div>
 
   <script>
-    /* ── TABS ── */
-    const tabs = document.querySelectorAll<HTMLButtonElement>('.fecha-tab');
-    const panels = document.querySelectorAll<HTMLElement>('.fecha-panel');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        const idx = tab.dataset.index;
-        tabs.forEach(t => t.classList.remove('active'));
-        panels.forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        document.querySelector<HTMLElement>(`.fecha-panel[data-index="${idx}"]`)?.classList.add('active');
+    document.addEventListener('astro:page-load', () => {
+      /* ── TABS ── */
+      const tabs = document.querySelectorAll<HTMLButtonElement>('.fecha-tab');
+      const panels = document.querySelectorAll<HTMLElement>('.fecha-panel');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const idx = tab.dataset.index;
+          tabs.forEach(t => t.classList.remove('active'));
+          panels.forEach(p => p.classList.remove('active'));
+          tab.classList.add('active');
+          document.querySelector<HTMLElement>(`.fecha-panel[data-index="${idx}"]`)?.classList.add('active');
+        });
       });
-    });
 
-    /* ── MODAL ── */
-    const backdrop = document.getElementById('ponente-modal')!;
-    const panel    = document.getElementById('modal-panel')!;
+      /* ── MODAL ── */
+      const backdrop = document.getElementById('ponente-modal');
+      const panel    = document.getElementById('modal-panel');
+      
+      if (!backdrop || !panel) return;
 
-    function esc(s: string) {
-      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    function photoOrInitial(fotoUrl: string|null, nombre: string, cls: string) {
-      return fotoUrl
-        ? `<img src="${esc(fotoUrl)}" alt="${esc(nombre)}" />`
-        : `<div class="${cls}">${nombre.charAt(0).toUpperCase()}</div>`;
-    }
-
-    function openModal(titulo: string, ponentes: any[]) {
-      if (!ponentes.length) return;
-
-      let html = '';
-
-      if (ponentes.length === 1) {
-        const p = ponentes[0];
-        if (p.foto_url) {
-          html = `
-            <div class="modal-photo-area">
-              <img src="${esc(p.foto_url)}" alt="${esc(p.nombre)}" />
-              <button class="modal-close js-close">✕</button>
-            </div>`;
-        } else {
-          html = `
-            <div class="modal-photo-area" style="height:240px">
-              <div class="modal-photo-inicial">${p.nombre.charAt(0).toUpperCase()}</div>
-              <button class="modal-close js-close">✕</button>
-            </div>
-            <div class="modal-info">
-              <p class="modal-activity-label">${esc(titulo)}</p>
-              <p style="font-size:1.3rem;font-weight:800;color:#E2E8F0;margin-bottom:0.4rem">${esc(p.nombre)}</p>
-              ${p.cargo   ? `<p class="modal-cargo">${esc(p.cargo)}</p>`     : ''}
-              ${p.empresa ? `<p class="modal-empresa">${esc(p.empresa)}</p>` : ''}
-              ${(p.cargo || p.empresa) ? '<div class="modal-divider"></div>' : ''}
-              ${p.bio     ? `<p class="modal-bio">${esc(p.bio)}</p>`         : ''}
-            </div>`;
-        }
-      } else {
-        const items = ponentes.map(p => `
-          <div class="modal-ponente-item">
-            <div class="modal-ponente-avatar">
-              ${photoOrInitial(p.foto_url, p.nombre, 'modal-ponente-avatar-inicial')}
-            </div>
-            <div>
-              <p class="modal-ponente-name">${esc(p.nombre)}</p>
-              ${p.cargo ? `<p class="modal-ponente-cargo">${esc(p.cargo)}</p>` : ''}
-            </div>
-          </div>`).join('');
-
-        html = `
-          <div class="modal-multi-header">
-            <span class="modal-multi-title">${esc(titulo)}</span>
-            <button class="modal-close-flat js-close">✕</button>
-          </div>
-          <div class="modal-info">${items}</div>`;
+      function esc(s: string) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
       }
 
-      panel.innerHTML = html;
-      backdrop.classList.add('open');
-      panel.querySelectorAll<HTMLButtonElement>('.js-close').forEach(btn => {
-        btn.addEventListener('click', closeModal);
+      function photoOrInitial(fotoUrl: string|null, nombre: string, cls: string) {
+        return fotoUrl
+          ? `<img src="${esc(fotoUrl)}" alt="${esc(nombre)}" />`
+          : `<div class="${cls}">${nombre.charAt(0).toUpperCase()}</div>`;
+      }
+
+      function openModal(titulo: string, ponentes: any[]) {
+        if (!ponentes.length) return;
+
+        let html = '';
+
+        if (ponentes.length === 1) {
+          const p = ponentes[0];
+          if (p.foto_url) {
+            html = `
+              <div class="modal-photo-area">
+                <img src="${esc(p.foto_url)}" alt="${esc(p.nombre)}" />
+                <button class="modal-close js-close">✕</button>
+              </div>`;
+          } else {
+            html = `
+              <div class="modal-photo-area" style="height:240px">
+                <div class="modal-photo-inicial">${p.nombre.charAt(0).toUpperCase()}</div>
+                <button class="modal-close js-close">✕</button>
+              </div>
+              <div class="modal-info">
+                <p class="modal-activity-label">${esc(titulo)}</p>
+                <p style="font-size:1.3rem;font-weight:800;color:#E2E8F0;margin-bottom:0.4rem">${esc(p.nombre)}</p>
+                ${p.cargo   ? `<p class="modal-cargo">${esc(p.cargo)}</p>`     : ''}
+                ${p.empresa ? `<p class="modal-empresa">${esc(p.empresa)}</p>` : ''}
+                ${(p.cargo || p.empresa) ? '<div class="modal-divider"></div>' : ''}
+                ${p.bio     ? `<p class="modal-bio">${esc(p.bio)}</p>`         : ''}
+              </div>`;
+          }
+        } else {
+          const items = ponentes.map((p: any) => `
+            <div class="modal-ponente-item">
+              <div class="modal-ponente-avatar">
+                ${photoOrInitial(p.foto_url, p.nombre, 'modal-ponente-avatar-inicial')}
+              </div>
+              <div>
+                <p class="modal-ponente-name">${esc(p.nombre)}</p>
+                ${p.cargo ? `<p class="modal-ponente-cargo">${esc(p.cargo)}</p>` : ''}
+              </div>
+            </div>`).join('');
+
+          html = `
+            <div class="modal-multi-header">
+              <span class="modal-multi-title">${esc(titulo)}</span>
+              <button class="modal-close-flat js-close">✕</button>
+            </div>
+            <div class="modal-info">${items}</div>`;
+        }
+
+        panel!.innerHTML = html;
+        backdrop!.classList.add('open');
+        panel!.querySelectorAll<HTMLButtonElement>('.js-close').forEach(btn => {
+          btn.addEventListener('click', closeModal);
+        });
+      }
+
+      function closeModal() {
+        backdrop!.classList.remove('open');
+      }
+
+      backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+      /* Activity cards */
+      document.querySelectorAll<HTMLElement>('.actividad-card[data-has-ponentes="true"]').forEach(card => {
+        card.addEventListener('click', () => {
+          const titulo   = card.dataset.titulo ?? '';
+          const ponentes = JSON.parse(card.dataset.ponentes ?? '[]');
+          openModal(titulo, ponentes);
+        });
       });
-    }
 
-    function closeModal() {
-      backdrop.classList.remove('open');
-    }
-
-    backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-    /* Activity cards */
-    document.querySelectorAll<HTMLElement>('.actividad-card[data-has-ponentes="true"]').forEach(card => {
-      card.addEventListener('click', () => {
-        const titulo   = card.dataset.titulo ?? '';
-        const ponentes = JSON.parse(card.dataset.ponentes ?? '[]');
-        openModal(titulo, ponentes);
-      });
-    });
-
-    /* Ponente cards in the marquee */
-    document.querySelectorAll<HTMLElement>('.ponente-marquee-card[data-ponente]').forEach(card => {
-      card.addEventListener('click', () => {
-        const p = JSON.parse(card.dataset.ponente ?? '{}');
-        openModal(p.cargo ?? '', [p]);
+      /* Ponente cards in the marquee */
+      document.querySelectorAll<HTMLElement>('.ponente-marquee-card[data-ponente]').forEach(card => {
+        card.addEventListener('click', () => {
+          const p = JSON.parse(card.dataset.ponente ?? '{}');
+          openModal(p.cargo ?? '', [p]);
+        });
       });
     });
   </script>
