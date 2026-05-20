@@ -341,115 +341,13 @@ const maxActividades = Math.max(
       flex-shrink: 0;
     }
 
-    /* ── DAY CARDS (right column) ── */
-    .hero-days {
-      position: relative;
-      z-index: 3;
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-      width: 100%;
-      max-width: 350px;
-      animation: heroEnter 0.6s cubic-bezier(0.2,0,0,1) 0.12s both;
-    }
-    .day-card {
-      display: block;
-      background: var(--dayCardBg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--dayCardBorder);
-      border-radius: 16px;
-      padding: 1.25rem 1.5rem;
-      min-width: 220px;
-      cursor: pointer;
-      transition: border-color 0.25s, transform 0.28s, box-shadow 0.28s;
-      text-decoration: none;
-      box-shadow: var(--dayCardShadow);
-    }
-    .day-card:hover {
-      border-color: var(--colorPrimario);
-      transform: translateX(-5px);
-      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08), 0 0 0 1px var(--colorPrimario);
-    }
-    .day-card-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.75rem;
-    }
-    .day-card-label {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--textHeadingColor);
-    }
-    .day-card-count {
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--badgeActividadColor);
-      background: var(--badgeActividadBg);
-      border: 1px solid var(--badgeActividadBorder);
-      border-radius: 50px;
-      padding: 0.1rem 0.5rem;
-    }
-    .day-card-times {
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.72rem;
-      color: var(--metaChipText);
-      margin-bottom: 0.65rem;
-    }
-    /* Activity bar */
-    .day-card-bar {
-      height: 3px;
-      background: var(--fechasTabsBorder);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .day-card-bar-fill {
-      height: 100%;
-      border-radius: 3px;
-      background: linear-gradient(90deg, var(--colorPrimario), var(--colorSecundario));
-      transition: width 0.8s cubic-bezier(0.2,0,0,1);
-    }
-
     /* ── RESPONSIVE HERO ── */
     @media (max-width: 860px) {
       .hero {
-        flex-direction: column;
         padding: 3.5rem 1.5rem 3rem;
         min-height: 380px;
         gap: 2rem;
       }
-      .hero-days {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        max-width: none;
-        gap: 0.5rem;
-        width: 100%;
-      }
-      .day-card {
-        flex: 1 1 100px;
-        min-width: 0;
-        width: 100%;
-        padding: 0.75rem 0.55rem;
-      }
-      .day-card-label {
-        font-size: 3vw;
-        font-size: clamp(0.75rem, 2.8vw, 0.88rem);
-        white-space: normal;
-        line-height: 1.1;
-      }
-      .day-card-times {
-        font-size: 2.2vw;
-        font-size: clamp(0.62rem, 2.2vw, 0.7rem);
-      }
-      .day-card-count {
-        font-size: 0.65rem;
-        padding: 0.05rem 0.35rem;
-      }
-      .day-card:hover { transform: translateY(-4px); }
       .hero-watermark { 
         font-size: 20vw;
         font-size: clamp(5.5rem, 26vw, 10rem);
@@ -1231,33 +1129,10 @@ const maxActividades = Math.max(
       </div>
     </div>
 
-    <!-- Right: Day cards -->
-    <div class="hero-days">
-      {cronograma_fechas.map((f: Fecha, i: number) => {
-        const count    = f.cronograma_actividades.length;
-        const pct      = Math.round((count / maxActividades) * 100);
-        const primera  = f.cronograma_actividades[0]?.hora_inicio;
-        const ultima   = f.cronograma_actividades[f.cronograma_actividades.length - 1]?.hora_fin
-                      ?? f.cronograma_actividades[f.cronograma_actividades.length - 1]?.hora_inicio;
-        return (
-          <a href="#cronograma" class="day-card" onclick={`var t = document.querySelectorAll('.fecha-tab'); if(t[${i}]) { t[${i}].click(); }`}>
-            <div class="day-card-top">
-              <span class="day-card-label">{f.etiqueta ?? f.fecha}</span>
-              <span class="day-card-count">{count}</span>
-            </div>
-            {primera && (
-              <p class="day-card-times">{primera.slice(0,5)}{ultima ? ` → ${ultima.slice(0,5)}` : ''}</p>
-            )}
-            <div class="day-card-bar">
-              <div class="day-card-bar-fill" style={`width:${pct}%`}></div>
-            </div>
-          </a>
-        );
-      })}
-    </div>
+    <!-- Right: Day cards removed for cleaner mobile/kiosk layout -->
   </header>
 
-  <main class="main">
+  <main class="main" id="cronograma">
     {cronograma_fechas.length === 0 ? (
       <div class="empty-state">
         <p>No hay fechas cargadas todavía.</p>
