@@ -1,6 +1,5 @@
 ---
 import '../styles/global.css';
-import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title: string;
@@ -42,7 +41,6 @@ const {
       href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <ClientRouter />
     <style define:vars={{ colorFondo, colorTexto, colorPrimario }}>
       *, *::before, *::after { 
         box-sizing: border-box; 

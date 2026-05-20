@@ -932,9 +932,9 @@ const maxActividades = Math.max(
       .fecha-tab { font-size: 0.75rem; padding: 0.6rem 0.4rem; border-radius: 9px; }
 
       .actividades-list::before { left: 56px; }
-      .actividad-card { grid-template-columns: 56px 1fr; gap: 0.75rem; }
+      .actividad-card { flex-direction: row; gap: 0.75rem; }
       .actividad-card::before { left: 56px; }
-      .actividad-hora { padding-right: 6px; }
+      .actividad-hora { padding-right: 6px; width: 56px; }
       .hora-text { font-size: 0.75rem; }
 
       .actividad-body { padding: 0.85rem 1rem; }
@@ -943,10 +943,6 @@ const maxActividades = Math.max(
 
       .ponente-marquee-card {
         height: 290px;
-        width: auto;
-        min-width: 165px;
-      }
-      .ponente-marquee-card:not(:has(img)) {
         width: 165px;
       }
       .ponente-marquee-poster {
@@ -1451,17 +1447,17 @@ const maxActividades = Math.max(
       var tabs = document.querySelectorAll('.fecha-tab');
       var panels = document.querySelectorAll('.fecha-panel');
       for (var i = 0; i < tabs.length; i++) {
-        tabs[i].addEventListener('click', function(e) {
-          var tab = e.currentTarget;
+        tabs[i].onclick = function(e) {
+          var tab = e.currentTarget || this;
           var idx = tab.getAttribute('data-index');
-          for (var j = 0; j < tabs.length; j++) { tabs[j].classList.remove('active'); }
-          for (var j = 0; j < panels.length; j++) { panels[j].classList.remove('active'); }
-          tab.classList.add('active');
+          for (var j = 0; j < tabs.length; j++) { tabs[j].className = tabs[j].className.replace(' active', ''); }
+          for (var j = 0; j < panels.length; j++) { panels[j].className = panels[j].className.replace(' active', ''); }
+          tab.className += ' active';
           var panelActivo = document.querySelector('.fecha-panel[data-index="' + idx + '"]');
           if (panelActivo) {
-            panelActivo.classList.add('active');
+            panelActivo.className += ' active';
           }
-        });
+        };
       }
 
       /* ── MODAL ── */
@@ -1472,14 +1468,14 @@ const maxActividades = Math.max(
 
       function esc(s) {
         if (!s) return '';
-        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
       }
 
       function photoOrInitial(fotoUrl, nombre, cls) {
         if (fotoUrl) {
           return '<img src="' + esc(fotoUrl) + '" alt="' + esc(nombre) + '" />';
         } else {
-          var initial = nombre ? nombre.charAt(0).toUpperCase() : '';
+          var initial = nombre ? String(nombre).charAt(0).toUpperCase() : '';
           return '<div class="' + cls + '">' + initial + '</div>';
         }
       }
@@ -1497,7 +1493,7 @@ const maxActividades = Math.max(
                    '<button class="modal-close js-close">✕</button>' +
                    '</div>';
           } else {
-            var initial = p.nombre ? p.nombre.charAt(0).toUpperCase() : '';
+            var initial = p.nombre ? String(p.nombre).charAt(0).toUpperCase() : '';
             html = '<div class="modal-photo-area" style="height:240px">' +
                    '<div class="modal-photo-inicial">' + initial + '</div>' +
                    '<button class="modal-close js-close">✕</button>' +
@@ -1534,51 +1530,59 @@ const maxActividades = Math.max(
         }
 
         panel.innerHTML = html;
-        backdrop.classList.add('open');
+        backdrop.className += ' open';
         
         var closeBtns = panel.querySelectorAll('.js-close');
         for (var i = 0; i < closeBtns.length; i++) {
-          closeBtns[i].addEventListener('click', closeModal);
+          closeBtns[i].onclick = closeModal;
         }
       }
 
       function closeModal() {
-        if (backdrop) backdrop.classList.remove('open');
+        if (backdrop) {
+          backdrop.className = backdrop.className.replace(' open', '');
+        }
       }
 
-      backdrop.addEventListener('click', function(e) { if (e.target === backdrop) closeModal(); });
-      document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+      backdrop.onclick = function(e) { if (e.target === backdrop) closeModal(); };
+      document.onkeydown = function(e) { if (e.key === 'Escape' || e.keyCode === 27) closeModal(); };
 
       /* Activity cards */
       var cards = document.querySelectorAll('.actividad-card[data-has-ponentes="true"]');
       for (var i = 0; i < cards.length; i++) {
-        cards[i].addEventListener('click', function(e) {
-          var card = e.currentTarget;
+        cards[i].onclick = function(e) {
+          var card = e.currentTarget || this;
           var titulo = card.getAttribute('data-titulo') || '';
           var ponentesRaw = card.getAttribute('data-ponentes') || '[]';
           var ponentes = [];
           try { ponentes = JSON.parse(ponentesRaw); } catch(err) {}
           openModal(titulo, ponentes);
-        });
+        };
       }
 
       /* Ponente cards in the marquee */
       var pCards = document.querySelectorAll('.ponente-marquee-card[data-ponente]');
       for (var i = 0; i < pCards.length; i++) {
-        pCards[i].addEventListener('click', function(e) {
-          var card = e.currentTarget;
+        pCards[i].onclick = function(e) {
+          var card = e.currentTarget || this;
           var pRaw = card.getAttribute('data-ponente') || '{}';
           var p = {};
           try { p = JSON.parse(pRaw); } catch(err) {}
           openModal(p.cargo || '', [p]);
-        });
+        };
       }
     }
 
-    // Initialize immediately in case of direct load without Astro transitions
-    initCronograma();
+    // Attach to window.onload to ensure DOM is fully ready
+    var oldOnload = window.onload;
+    window.onload = function() {
+      if (oldOnload) oldOnload();
+      initCronograma();
+    };
     
-    // Also attach to Astro page load if the router works
-    document.addEventListener('astro:page-load', initCronograma);
+    // Also run immediately just in case onload already fired
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      setTimeout(initCronograma, 1);
+    }
   </script>
 </CronogramaLayout>
