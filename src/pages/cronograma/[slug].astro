@@ -1447,30 +1447,7 @@ const maxActividades = Math.max(
   </div>
 
   <script is:inline>
-    function initCronograma() {
-      /* ── TABS ── */
-      var tabs = document.querySelectorAll('.fecha-tab');
-      var panels = document.querySelectorAll('.fecha-panel');
-      for (var i = 0; i < tabs.length; i++) {
-        tabs[i].onclick = function(e) {
-          var tab = e.currentTarget || this;
-          var idx = tab.getAttribute('data-index');
-          for (var j = 0; j < tabs.length; j++) { tabs[j].className = tabs[j].className.replace(' active', ''); }
-          for (var j = 0; j < panels.length; j++) { panels[j].className = panels[j].className.replace(' active', ''); }
-          tab.className += ' active';
-          var panelActivo = document.querySelector('.fecha-panel[data-index="' + idx + '"]');
-          if (panelActivo) {
-            panelActivo.className += ' active';
-          }
-        };
-      }
-
-      /* ── MODAL ── */
-      var backdrop = document.getElementById('ponente-modal');
-      var panel = document.getElementById('modal-panel');
-      
-      if (!backdrop || !panel) return;
-
+    (function() {
       function esc(s) {
         if (!s) return '';
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1486,10 +1463,12 @@ const maxActividades = Math.max(
       }
 
       function openModal(titulo, ponentes) {
+        var backdrop = document.getElementById('ponente-modal');
+        var panel = document.getElementById('modal-panel');
+        if (!backdrop || !panel) return;
         if (!ponentes || !ponentes.length) return;
 
         var html = '';
-
         if (ponentes.length === 1) {
           var p = ponentes[0];
           if (p.foto_url) {
@@ -1526,7 +1505,6 @@ const maxActividades = Math.max(
                      '</div>' +
                      '</div>';
           }
-
           html = '<div class="modal-multi-header">' +
                  '<span class="modal-multi-title">' + esc(titulo) + '</span>' +
                  '<button class="modal-close-flat js-close">✕</button>' +
@@ -1535,59 +1513,96 @@ const maxActividades = Math.max(
         }
 
         panel.innerHTML = html;
-        backdrop.className += ' open';
-        
-        var closeBtns = panel.querySelectorAll('.js-close');
-        for (var i = 0; i < closeBtns.length; i++) {
-          closeBtns[i].onclick = closeModal;
+        if (backdrop.className.indexOf('open') === -1) {
+          backdrop.className += ' open';
         }
       }
 
       function closeModal() {
+        var backdrop = document.getElementById('ponente-modal');
         if (backdrop) {
           backdrop.className = backdrop.className.replace(' open', '');
         }
       }
 
-      backdrop.onclick = function(e) { if (e.target === backdrop) closeModal(); };
+      function handleGlobalClick(e) {
+        var target = e.target;
+        
+        // Handle backdrop click
+        var backdrop = document.getElementById('ponente-modal');
+        if (target === backdrop) {
+          closeModal();
+          return;
+        }
+
+        while (target && target !== document.body && target !== document) {
+          var cls = target.className;
+          if (typeof cls === 'string') {
+            
+            // 1. Close buttons
+            if (cls.indexOf('js-close') > -1) {
+              closeModal();
+              return;
+            }
+
+            // 2. Tabs
+            if (cls.indexOf('fecha-tab') > -1) {
+              var idx = target.getAttribute('data-index');
+              var tabs = document.querySelectorAll('.fecha-tab');
+              var panels = document.querySelectorAll('.fecha-panel');
+              for (var j = 0; j < tabs.length; j++) { tabs[j].className = tabs[j].className.replace(' active', ''); }
+              for (var j = 0; j < panels.length; j++) { panels[j].className = panels[j].className.replace(' active', ''); }
+              target.className += ' active';
+              var panelActivo = document.querySelector('.fecha-panel[data-index="' + idx + '"]');
+              if (panelActivo) {
+                panelActivo.className += ' active';
+              }
+              return;
+            }
+
+            // 3. Actividad Card
+            if (cls.indexOf('actividad-card') > -1) {
+              var hasP = target.getAttribute('data-has-ponentes');
+              if (hasP === 'true') {
+                var titulo = target.getAttribute('data-titulo') || '';
+                var ponentesRaw = target.getAttribute('data-ponentes') || '[]';
+                var ponentes = [];
+                try { ponentes = JSON.parse(ponentesRaw); } catch(err) {}
+                openModal(titulo, ponentes);
+              }
+              return;
+            }
+
+            // 4. Ponente Marquee Card
+            if (cls.indexOf('ponente-marquee-card') > -1) {
+              var pRaw = target.getAttribute('data-ponente') || '{}';
+              var p = {};
+              try { p = JSON.parse(pRaw); } catch(err) {}
+              openModal(p.cargo || '', [p]);
+              return;
+            }
+          }
+          target = target.parentNode;
+        }
+      }
+
+      // Attach global listeners safely
+      var oldOnload = window.onload;
+      window.onload = function() {
+        if (oldOnload) oldOnload();
+        document.body.onclick = handleGlobalClick;
+        // Fallback for touch devices
+        document.body.addEventListener('touchstart', function(e) {
+            // we don't preventDefault here, just let it trigger click
+        }, {passive: true});
+      };
+      
+      // Also attach immediately if already loaded
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(function() { document.body.onclick = handleGlobalClick; }, 1);
+      }
+
       document.onkeydown = function(e) { if (e.key === 'Escape' || e.keyCode === 27) closeModal(); };
-
-      /* Activity cards */
-      var cards = document.querySelectorAll('.actividad-card[data-has-ponentes="true"]');
-      for (var i = 0; i < cards.length; i++) {
-        cards[i].onclick = function(e) {
-          var card = e.currentTarget || this;
-          var titulo = card.getAttribute('data-titulo') || '';
-          var ponentesRaw = card.getAttribute('data-ponentes') || '[]';
-          var ponentes = [];
-          try { ponentes = JSON.parse(ponentesRaw); } catch(err) {}
-          openModal(titulo, ponentes);
-        };
-      }
-
-      /* Ponente cards in the marquee */
-      var pCards = document.querySelectorAll('.ponente-marquee-card[data-ponente]');
-      for (var i = 0; i < pCards.length; i++) {
-        pCards[i].onclick = function(e) {
-          var card = e.currentTarget || this;
-          var pRaw = card.getAttribute('data-ponente') || '{}';
-          var p = {};
-          try { p = JSON.parse(pRaw); } catch(err) {}
-          openModal(p.cargo || '', [p]);
-        };
-      }
-    }
-
-    // Attach to window.onload to ensure DOM is fully ready
-    var oldOnload = window.onload;
-    window.onload = function() {
-      if (oldOnload) oldOnload();
-      initCronograma();
-    };
-    
-    // Also run immediately just in case onload already fired
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-      setTimeout(initCronograma, 1);
-    }
+    })();
   </script>
 </CronogramaLayout>
