@@ -13,8 +13,6 @@
   },
   "dependencies": {
     "@astrojs/node": "^10.1.1",
-    "@capacitor/android": "^8.3.4",
-    "@capacitor/core": "^8.3.4",
     "@supabase/supabase-js": "^2.105.4",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.3.2",
@@ -22,7 +20,6 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@capacitor/cli": "^8.3.4",
     "typescript": "^6.0.3"
   }
 }
