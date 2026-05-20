@@ -266,18 +266,18 @@ const cronogramas = await getAllCronogramas();
       background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent);
     }
 
-    /* ── GRID ── */
     .grid {
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 2rem;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 2rem;
     }
 
     /* ── EVENT CARD (Glassmorphism) ── */
     .event-card {
+      flex: 1 1 420px;
       background: rgba(255,255,255,0.04);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
@@ -483,7 +483,7 @@ const cronogramas = await getAllCronogramas();
       .hero-wrap { padding: 5rem 1.25rem 6rem; }
       .hero-title { font-size: clamp(2.4rem, 10vw, 3.5rem); }
       .section-head { padding: 2.5rem 1.25rem 0; }
-      .grid { padding: 0 1.25rem; grid-template-columns: 1fr; gap: 1.25rem; }
+      .grid { padding: 0 1.25rem; flex-direction: column; gap: 1.25rem; }
       .sphere.s1 { right: 5%; top: 8%; width: 60px; height: 60px; }
       .sphere.s4 { display: none; }
       .sphere.s6 { display: none; }
