@@ -92,12 +92,23 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
             id: 'd1-3',
             hora_inicio: '14:00',
             hora_fin: '14:30',
-            titulo: 'Conferencia',
+            titulo: 'El turismo como motor de la economía',
             descripcion: null,
             lugar: 'Salón Zafiro',
             tipo: 'actividad',
             orden: 3,
-            cronograma_actividad_ponentes: []
+            cronograma_actividad_ponentes: [
+              {
+                ponente: {
+                  id: 'p-daniella',
+                  nombre: 'Daniella Cabello',
+                  cargo: 'Ministra del Poder Popular para el Turismo',
+                  empresa: null,
+                  bio: null,
+                  foto_url: '/ponentes/ponente16.jpeg'
+                }
+              }
+            ]
           },
           {
             id: 'd1-4',
