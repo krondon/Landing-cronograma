@@ -1007,6 +1007,29 @@ const maxActividades = Math.max(
       background: rgba(0,0,0,0.75);
       transform: scale(1.1);
     }
+    .modal-back {
+      position: absolute;
+      top: 0.9rem;
+      left: 0.9rem;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: background 0.2s, transform 0.2s;
+      line-height: 1;
+    }
+    .modal-back:hover {
+      background: rgba(0,0,0,0.75);
+      transform: scale(1.1);
+    }
     .modal-info {
       padding: 1.5rem;
       background: #0D1E35;
@@ -1077,8 +1100,15 @@ const maxActividades = Math.max(
       display: flex;
       align-items: center;
       gap: 1rem;
-      padding: 0.9rem 0;
+      padding: 0.9rem 0.6rem;
       border-bottom: 1px solid rgba(255,255,255,0.06);
+      cursor: pointer;
+      transition: background 0.22s, transform 0.22s;
+      border-radius: 12px;
+    }
+    .modal-ponente-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateX(4px);
     }
     .modal-ponente-item:last-child { border-bottom: none; }
     .modal-ponente-avatar {
@@ -1429,23 +1459,56 @@ const maxActividades = Math.max(
         }
       }
 
-      function openModal(titulo, ponentes) {
+      var lastPanelTitle = '';
+      var lastPanelSpeakers = null;
+
+      function openModal(titulo, ponentes, isFromClickOnPanelist) {
         var backdrop = document.getElementById('ponente-modal');
         var panel = document.getElementById('modal-panel');
         if (!backdrop || !panel) return;
         if (!ponentes || !ponentes.length) return;
 
+        // Check if all speakers share the exact same non-null photo URL (i.e. group flyer)
+        var allSamePhoto = true;
+        var firstPhoto = ponentes[0] ? ponentes[0].foto_url : null;
+        if (firstPhoto) {
+          for (var i = 1; i < ponentes.length; i++) {
+            if (ponentes[i].foto_url !== firstPhoto) {
+              allSamePhoto = false;
+              break;
+            }
+          }
+        } else {
+          allSamePhoto = false;
+        }
+
+        // If this is a direct open of a multi-speaker panel (and they don't share the same photo), save context
+        if (ponentes.length > 1 && !allSamePhoto) {
+          lastPanelTitle = titulo;
+          lastPanelSpeakers = ponentes;
+        } else if (!isFromClickOnPanelist) {
+          // If direct open of single speaker from main page, reset history
+          lastPanelTitle = '';
+          lastPanelSpeakers = null;
+        }
+
         var html = '';
-        if (ponentes.length === 1) {
+        var hasBack = !!lastPanelSpeakers;
+        var backBtn = hasBack ? '<button class="modal-back js-back">←</button>' : '';
+
+        if (ponentes.length === 1 || allSamePhoto) {
           var p = ponentes[0];
-          if (p.foto_url) {
+          var photoUrl = allSamePhoto ? firstPhoto : p.foto_url;
+          if (photoUrl) {
             html = '<div class="modal-photo-area">' +
-                   '<img src="' + esc(p.foto_url) + '" alt="' + esc(p.nombre) + '" />' +
+                   backBtn +
+                   '<img src="' + esc(photoUrl) + '" alt="' + esc(allSamePhoto ? titulo : p.nombre) + '" />' +
                    '<button class="modal-close js-close">✕</button>' +
                    '</div>';
           } else {
             var initial = p.nombre ? String(p.nombre).charAt(0).toUpperCase() : '';
             html = '<div class="modal-photo-area" style="height:240px">' +
+                   backBtn +
                    '<div class="modal-photo-inicial">' + initial + '</div>' +
                    '<button class="modal-close js-close">✕</button>' +
                    '</div>' +
@@ -1462,7 +1525,7 @@ const maxActividades = Math.max(
           var items = '';
           for (var i = 0; i < ponentes.length; i++) {
             var p = ponentes[i];
-            items += '<div class="modal-ponente-item">' +
+            items += '<div class="modal-ponente-item js-ponente-item" data-ponente="' + esc(JSON.stringify(p)) + '">' +
                      '<div class="modal-ponente-avatar">' +
                      photoOrInitial(p.foto_url, p.nombre, 'modal-ponente-avatar-inicial') +
                      '</div>' +
@@ -1484,10 +1547,41 @@ const maxActividades = Math.max(
           backdrop.className += ' open';
         }
 
+        // Close handlers
         var closeBtns = panel.querySelectorAll('.js-close');
         for (var i = 0; i < closeBtns.length; i++) {
           closeBtns[i].onclick = closeModal;
           closeBtns[i].ontouchstart = closeModal;
+        }
+
+        // Back handler
+        if ((ponentes.length === 1 || allSamePhoto) && hasBack) {
+          var backBtnEl = panel.querySelector('.js-back');
+          if (backBtnEl) {
+            var backHandler = function(e) {
+              if (e && e.preventDefault) e.preventDefault();
+              openModal(lastPanelTitle, lastPanelSpeakers, false);
+            };
+            backBtnEl.onclick = backHandler;
+            backBtnEl.ontouchstart = backHandler;
+          }
+        }
+
+        // Item click handlers for panels
+        if (ponentes.length > 1 && !allSamePhoto) {
+          var pItems = panel.querySelectorAll('.js-ponente-item');
+          for (var i = 0; i < pItems.length; i++) {
+            var pItemHandler = function(e) {
+              if (e && e.preventDefault) e.preventDefault();
+              var item = e.currentTarget || this;
+              var pRaw = item.getAttribute('data-ponente') || '{}';
+              var p = {};
+              try { p = JSON.parse(pRaw); } catch(err) {}
+              openModal(p.cargo || '', [p], true);
+            };
+            pItems[i].onclick = pItemHandler;
+            pItems[i].ontouchstart = pItemHandler;
+          }
         }
       }
 

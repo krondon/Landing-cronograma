@@ -264,7 +264,7 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
             id: 'd2-1',
             hora_inicio: '09:30',
             hora_fin: '09:50',
-            titulo: 'Los ángulos ciegos: Una charla que salva vidas',
+            titulo: 'Los Ángulos ciegos: Una charla que salva vidas',
             descripcion: null,
             lugar: 'Salón Zafiro',
             tipo: 'actividad',
@@ -274,7 +274,7 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
                 ponente: {
                   id: 'p-xiomara',
                   nombre: 'Xiomara Hoyos',
-                  cargo: 'Directora Nacional de FedeIndustria · Presidenta AIEM',
+                  cargo: 'Directora Nacional de Fedeindustria y Presidenta de la Asociación de Industriales y Ensambladores de Motociclos',
                   empresa: 'FedeIndustria',
                   bio: null,
                   foto_url: '/ponentes/ponente13.jpeg'
@@ -296,7 +296,7 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
             id: 'd2-2',
             hora_inicio: '09:50',
             hora_fin: '10:10',
-            titulo: '¿Dónde se consume la energía en una industria? Radiografía y Plan de reestructuración eléctrica',
+            titulo: '¿Dónde se consume la energía en una industria? Radiografía y Plan inicial de reestructuración eléctrica',
             descripcion: 'Para la competitividad internacional de la producción venezolana.',
             lugar: 'Salón Zafiro',
             tipo: 'actividad',
@@ -308,7 +308,7 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
                   nombre: 'Germán Oropeza',
                   cargo: 'BU Manager en ABB',
                   empresa: 'ABB',
-                  bio: 'Ingeniero eléctrico especializado con más de 15 años de trayectoria en automatización y electrificación.',
+                  bio: 'Ingeniero eléctrico especializado con más de 15 años de trayectoria en automatización y electrificación, destacando su experiencia como BU Manager en ABB.',
                   foto_url: '/ponentes/ponente7.jpeg'
                 }
               }
@@ -318,12 +318,23 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
             id: 'd2-3',
             hora_inicio: '10:10',
             hora_fin: '10:40',
-            titulo: 'Conferencia',
+            titulo: 'Dónde estamos y para dónde van las empresas básicas y del sector minero',
             descripcion: null,
             lugar: 'Salón Zafiro',
             tipo: 'actividad',
             orden: 3,
-            cronograma_actividad_ponentes: []
+            cronograma_actividad_ponentes: [
+              {
+                ponente: {
+                  id: 'p-hectorsilva',
+                  nombre: 'Héctor Silva',
+                  cargo: 'Ministro del Poder Popular de Desarrollo Minero Ecológico e Industrias Básicas',
+                  empresa: 'Ministerio del Poder Popular de Desarrollo Minero Ecológico e Industrias Básicas',
+                  bio: null,
+                  foto_url: null
+                }
+              }
+            ]
           },
           {
             id: 'd2-4',
@@ -338,7 +349,7 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
               {
                 ponente: {
                   id: 'p-luisbernardo',
-                  nombre: 'Dr. Luis Bernardo',
+                  nombre: 'Luis Bernardo',
                   cargo: 'Presidente de Digitel',
                   empresa: 'Digitel',
                   bio: null,
@@ -350,12 +361,100 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
           {
             id: 'd2-5',
             hora_inicio: '11:10',
-            hora_fin: '13:30',
-            titulo: 'Conferencia',
+            hora_fin: '11:40',
+            titulo: 'Petroquímica y refinación',
             descripcion: null,
             lugar: 'Salón Zafiro',
             tipo: 'actividad',
             orden: 5,
+            cronograma_actividad_ponentes: [
+              {
+                ponente: {
+                  id: 'p-carloscanelon',
+                  nombre: 'Carlos Canelón',
+                  cargo: 'Presidente de PDVSA INTEVEP (Instituto de Tecnología Venezolana para el Petróleo)',
+                  empresa: 'PDVSA INTEVEP',
+                  bio: null,
+                  foto_url: null
+                }
+              }
+            ]
+          },
+          {
+            id: 'd2-6',
+            hora_inicio: '11:40',
+            hora_fin: '12:10',
+            titulo: 'El gas como sector estratégico de la economía',
+            descripcion: null,
+            lugar: 'Salón Zafiro',
+            tipo: 'actividad',
+            orden: 6,
+            cronograma_actividad_ponentes: [
+              {
+                ponente: {
+                  id: 'p-cindyrondon',
+                  nombre: 'Cindy Rondón Córdova',
+                  cargo: 'Viceministra de Gas',
+                  empresa: 'Ministerio del Poder Popular de Hidrocarburos',
+                  bio: null,
+                  foto_url: null
+                }
+              }
+            ]
+          },
+          {
+            id: 'd2-7',
+            hora_inicio: '12:10',
+            hora_fin: '12:40',
+            titulo: 'Eficiencia productiva en Hidrocarburos',
+            descripcion: null,
+            lugar: 'Salón Zafiro',
+            tipo: 'actividad',
+            orden: 7,
+            cronograma_actividad_ponentes: [
+              {
+                ponente: {
+                  id: 'p-albaniavillaroel',
+                  nombre: 'Albania Villaroel Gómez',
+                  cargo: 'Viceministra de Inteligencia Artificial y Eficiencia Productiva en Hidrocarburos',
+                  empresa: 'Ministerio del Poder Popular de Hidrocarburos',
+                  bio: null,
+                  foto_url: null
+                }
+              }
+            ]
+          },
+          {
+            id: 'd2-8',
+            hora_inicio: '12:40',
+            hora_fin: '13:10',
+            titulo: 'Promoción del desarrollo sostenible de nuestros recursos energéticos',
+            descripcion: null,
+            lugar: 'Salón Zafiro',
+            tipo: 'actividad',
+            orden: 8,
+            cronograma_actividad_ponentes: [
+              {
+                ponente: {
+                  id: 'p-paulahenao',
+                  nombre: 'Paula Henao',
+                  cargo: 'Ministra del Poder Popular para Hidrocarburos',
+                  empresa: 'Ministerio del Poder Popular para Hidrocarburos',
+                  bio: null,
+                  foto_url: null
+                }
+              }
+            ]
+          },
+          {
+            id: 'd2-9',
+            hora_inicio: '13:10',
+            hora_fin: '13:30',
+            titulo: 'Cantv: la Arquitectura para la nueva revolución industrial digital en Venezuela',
+            descripcion: null,
+            lugar: 'Salón Zafiro',
+            tipo: 'actividad',
+            orden: 9,
             cronograma_actividad_ponentes: []
           },
           {
@@ -366,62 +465,18 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
             descripcion: null,
             lugar: null,
             tipo: 'receso',
-            orden: 6,
+            orden: 10,
             cronograma_actividad_ponentes: []
           },
           {
-            id: 'd2-10',
-            hora_inicio: '14:00',
-            hora_fin: '15:00',
-            titulo: 'Panel: El rol estratégico de los gremios en la Visión Global de la economía venezolana',
-            descripcion: 'Competitividad, integración y crecimiento productivo.',
-            lugar: 'Salón Zafiro',
-            tipo: 'panel',
-            orden: 7,
-            cronograma_actividad_ponentes: [
-              {
-                ponente: {
-                  id: 'p-nelin',
-                  nombre: 'Nelin Escalante',
-                  cargo: 'Periodista y analista económico, de negocios y mercadeo',
-                  empresa: null,
-                  bio: null,
-                  foto_url: '/ponentes/ponente10.jpeg'
-                }
-              }
-            ]
-          },
-          {
             id: 'd2-11',
-            hora_inicio: '15:00',
-            hora_fin: '16:00',
-            titulo: 'Panel: Mercadeo que funciona',
-            descripcion: null,
-            lugar: 'Salón Zafiro',
-            tipo: 'panel',
-            orden: 8,
-            cronograma_actividad_ponentes: [
-              {
-                ponente: {
-                  id: 'p-montoya',
-                  nombre: 'Julio Montoya',
-                  cargo: 'Especialista en Marketing y Comunicación Estratégica',
-                  empresa: null,
-                  bio: null,
-                  foto_url: null
-                }
-              }
-            ]
-          },
-          {
-            id: 'd2-12',
-            hora_inicio: '16:00',
-            hora_fin: '16:20',
-            titulo: 'De la adopción a la transformación: El sector privado como actor protagónico en la era de la IA',
+            hora_inicio: '14:00',
+            hora_fin: '14:30',
+            titulo: 'De la adopción a la transformación: El sector privado como actor protagónico en la era de la Inteligencia Artificial',
             descripcion: null,
             lugar: 'Salón Zafiro',
             tipo: 'actividad',
-            orden: 9,
+            orden: 11,
             cronograma_actividad_ponentes: [
               {
                 ponente: {
@@ -436,14 +491,14 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
             ]
           },
           {
-            id: 'd2-13',
-            hora_inicio: '16:20',
-            hora_fin: '16:40',
+            id: 'd2-12',
+            hora_inicio: '14:30',
+            hora_fin: '15:00',
             titulo: 'Modernización de los medios de pago en Venezuela',
             descripcion: null,
             lugar: 'Salón Zafiro',
             tipo: 'actividad',
-            orden: 10,
+            orden: 12,
             cronograma_actividad_ponentes: [
               {
                 ponente: {
@@ -458,14 +513,138 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
             ]
           },
           {
+            id: 'd2-13',
+            hora_inicio: '15:00',
+            hora_fin: '16:00',
+            titulo: 'Panel: Mercadeo que funciona',
+            descripcion: null,
+            lugar: 'Salón Zafiro',
+            tipo: 'panel',
+            orden: 13,
+            cronograma_actividad_ponentes: [
+              {
+                ponente: {
+                  id: 'p-montoya',
+                  nombre: 'Julio Montoya',
+                  cargo: 'Moderador · Especialista en marketing y comunicación estratégica',
+                  empresa: null,
+                  bio: null,
+                  foto_url: '/ponentes/ponente17.jpeg'
+                }
+              },
+              {
+                ponente: {
+                  id: 'p-luciaalliegro',
+                  nombre: 'Lucía Alliegro',
+                  cargo: 'Head of marketing McDonald\'s Vzla',
+                  empresa: 'McDonald\'s Venezuela',
+                  bio: null,
+                  foto_url: '/ponentes/ponente17.jpeg'
+                }
+              },
+              {
+                ponente: {
+                  id: 'p-fernandoleon',
+                  nombre: 'Fernando León',
+                  cargo: 'Gerente de mercadeo de negocio de alimentos en Nestlé',
+                  empresa: 'Nestlé',
+                  bio: null,
+                  foto_url: '/ponentes/ponente17.jpeg'
+                }
+              },
+              {
+                ponente: {
+                  id: 'p-adrianadigenova',
+                  nombre: 'Adriana Di Génova',
+                  cargo: 'Head of Comercial B2B Movistar Venezuela',
+                  empresa: 'Movistar Venezuela',
+                  bio: null,
+                  foto_url: '/ponentes/ponente17.jpeg'
+                }
+              },
+              {
+                ponente: {
+                  id: 'p-andreinaaguiar',
+                  nombre: 'Andreina Aguiar',
+                  cargo: 'Comunicaciones estratégicas, Mercadeo y especialista en branding',
+                  empresa: null,
+                  bio: null,
+                  foto_url: '/ponentes/ponente17.jpeg'
+                }
+              }
+            ]
+          },
+          {
             id: 'd2-14',
+            hora_inicio: '16:00',
+            hora_fin: '17:00',
+            titulo: 'Panel: El rol estratégico de los gremios en la Visión Global de la economía venezolana',
+            descripcion: 'Competitividad, integración y crecimiento productivo.',
+            lugar: 'Salón Zafiro',
+            tipo: 'panel',
+            orden: 14,
+            cronograma_actividad_ponentes: [
+              {
+                ponente: {
+                  id: 'p-nelin',
+                  nombre: 'Nelin Escalante',
+                  cargo: 'Moderador · Periodista, analista económico, Negocios y mercadeo',
+                  empresa: null,
+                  bio: null,
+                  foto_url: '/ponentes/ponente18.jpeg'
+                }
+              },
+              {
+                ponente: {
+                  id: 'p-italoatencio',
+                  nombre: 'Italo Atencio',
+                  cargo: 'Presidente de ANSA',
+                  empresa: 'ANSA',
+                  bio: null,
+                  foto_url: '/ponentes/ponente18.jpeg'
+                }
+              },
+              {
+                ponente: {
+                  id: 'p-felipecapozzolo',
+                  nombre: 'Felipe Capozzolo',
+                  cargo: 'Presidente de Fedecámaras',
+                  empresa: 'Fedecámaras',
+                  bio: null,
+                  foto_url: '/ponentes/ponente18.jpeg'
+                }
+              },
+              {
+                ponente: {
+                  id: 'p-mariavelasquez',
+                  nombre: 'María Velásquez',
+                  cargo: 'Presidenta Ejecutiva Avecintel',
+                  empresa: 'Avecintel',
+                  bio: null,
+                  foto_url: '/ponentes/ponente18.jpeg'
+                }
+              },
+              {
+                ponente: {
+                  id: 'p-orlandocamacho',
+                  nombre: 'Orlando Camacho',
+                  cargo: 'Presidente de Fedeindustria',
+                  empresa: 'Fedeindustria',
+                  bio: null,
+                  foto_url: '/ponentes/ponente18.jpeg'
+                }
+              }
+            ]
+          },
+          {
+            id: 'd2-15',
             hora_inicio: '17:00',
             hora_fin: '17:30',
             titulo: 'Tendencias del Consumidor Venezolano y Estrategias de las Empresas Ganadoras 2026',
             descripcion: null,
             lugar: 'Salón Zafiro',
             tipo: 'actividad',
-            orden: 11,
+            orden: 15,
             cronograma_actividad_ponentes: [
               {
                 ponente: {
@@ -480,14 +659,14 @@ const MOCK_CRONOGRAMAS: Cronograma[] = [
             ]
           },
           {
-            id: 'd2-15',
+            id: 'd2-16',
             hora_inicio: '17:30',
             hora_fin: '18:00',
             titulo: 'IA para el Crecimiento Empresarial',
             descripcion: null,
             lugar: 'Salón Zafiro',
             tipo: 'actividad',
-            orden: 12,
+            orden: 16,
             cronograma_actividad_ponentes: [
               {
                 ponente: {
@@ -578,13 +757,22 @@ export function formatHora(hora: string): string {
 }
 
 export function getPonentesDelDia(fecha: Fecha): Array<{ ponente: Ponente; titulo: string }> {
-  const seen = new Set<string>();
+  const seenIds = new Set<string>();
+  const seenPhotos = new Set<string>();
   const result: Array<{ ponente: Ponente; titulo: string }> = [];
   for (const act of fecha.cronograma_actividades) {
     for (const ap of act.cronograma_actividad_ponentes) {
-      if (!seen.has(ap.ponente.id)) {
-        seen.add(ap.ponente.id);
-        result.push({ ponente: ap.ponente, titulo: act.titulo });
+      const p = ap.ponente;
+      if (!seenIds.has(p.id)) {
+        seenIds.add(p.id);
+        if (p.foto_url) {
+          if (!seenPhotos.has(p.foto_url)) {
+            seenPhotos.add(p.foto_url);
+            result.push({ ponente: p, titulo: act.titulo });
+          }
+        } else {
+          result.push({ ponente: p, titulo: act.titulo });
+        }
       }
     }
   }
