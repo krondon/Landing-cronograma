@@ -691,6 +691,7 @@ const maxActividades = Math.max(
       width: max-content;
       /* Scroll to the left */
       animation: marqueeScroll 20s linear infinite;
+      will-change: transform;
     }
     .marquee-track:hover {
       animation-play-state: paused;
@@ -932,9 +933,9 @@ const maxActividades = Math.max(
     .modal-backdrop {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(6,14,28,0.75);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: rgba(6,14,28,0.85);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       z-index: 1000;
       display: flex;
       align-items: center;
@@ -1551,7 +1552,6 @@ const maxActividades = Math.max(
         var closeBtns = panel.querySelectorAll('.js-close');
         for (var i = 0; i < closeBtns.length; i++) {
           closeBtns[i].onclick = closeModal;
-          closeBtns[i].ontouchstart = closeModal;
         }
 
         // Back handler
@@ -1563,7 +1563,6 @@ const maxActividades = Math.max(
               openModal(lastPanelTitle, lastPanelSpeakers, false);
             };
             backBtnEl.onclick = backHandler;
-            backBtnEl.ontouchstart = backHandler;
           }
         }
 
@@ -1580,7 +1579,6 @@ const maxActividades = Math.max(
               openModal(p.cargo || '', [p], true);
             };
             pItems[i].onclick = pItemHandler;
-            pItems[i].ontouchstart = pItemHandler;
           }
         }
       }
@@ -1612,7 +1610,6 @@ const maxActividades = Math.max(
           }
         };
         tabs[i].onclick = tabHandler;
-        tabs[i].ontouchstart = tabHandler;
       }
 
       // 2. Actividad Cards
@@ -1628,7 +1625,6 @@ const maxActividades = Math.max(
           openModal(titulo, ponentes);
         };
         cards[i].onclick = cardHandler;
-        cards[i].ontouchstart = cardHandler;
       }
 
       // 3. Ponente Marquee Cards
@@ -1643,7 +1639,6 @@ const maxActividades = Math.max(
           openModal(p.cargo || '', [p]);
         };
         pCards[i].onclick = pCardHandler;
-        pCards[i].ontouchstart = pCardHandler;
       }
 
       // 4. Modal Backdrop
@@ -1656,7 +1651,6 @@ const maxActividades = Math.max(
           }
         };
         backdrop.onclick = backdropHandler;
-        backdrop.ontouchstart = backdropHandler;
       }
 
       document.onkeydown = function(e) { if (e.key === 'Escape' || e.keyCode === 27) closeModal(); };
